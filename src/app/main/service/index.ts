@@ -23,32 +23,11 @@ export async function read (
   const cmd = sock.remoteAddress + ':' + sock.remotePort + '-' + send.type
 
   server.send(sock, send.data)
-  log.info('发送的内容:' + send.data.join(' '))
+  log.debug('发送的内容:' + send.data.join(' '))
 
   const event = sha256(cmd)
 
   return MyEventOn(event, timeout * 1000)
-  // let result
-  // for (let i = 0; i < times; i++) {
-  //   try {
-  //     server.send(sock, send.data)
-
-  //     const event = sha256(cmd)
-
-  //     result = await MyEventOn(event, timeout * 1000)
-  //     break
-  //   } catch (error) {
-  //     result = {
-  //       type: data.type,
-  //       data: null,
-  //       state: 100,
-  //       msg: '返回超时'
-  //     }
-  //   }
-  // }
-
-  // log.info(`${cmd}:${<ProtocolResponedInterface>result.msg}`)
-  // return result
 }
 
 export function write (
@@ -61,33 +40,11 @@ export function write (
   const cmd = sock.remoteAddress + ':' + sock.remotePort + '-' + send.type
 
   server.send(sock, send.data)
-  log.info('发送的内容:' + send.data.join(' '))
+  log.debug('发送的内容:' + send.data.join(' '))
 
   const event = sha256(cmd)
 
   return MyEventOn(event, timeout * 1000)
-  // let result
-  // for (let i = 0; i < times; i++) {
-  //   try {
-  //     server.send(sock, send.data)
-  //     log.info('发送的内容:' + send.data.join(' '))
-
-  //     const event = sha256(cmd)
-
-  //     result = await MyEventOn(event, timeout * 1000)
-  //     break
-  //   } catch (error) {
-  //     result = {
-  //       type: data.type,
-  //       data: null,
-  //       state: 100,
-  //       msg: '返回超时'
-  //     }
-  //   }
-  // }
-
-  // log.info(`${cmd}:${<ProtocolResponedInterface>result.msg}`)
-  // return result
 }
 
 export function ReadDeviceId (sock: net.Socket) {
@@ -127,7 +84,7 @@ function onReceive (sock: net.Socket, data: Buffer) {
   const cmd = sock.remoteAddress + ':' + sock.remotePort + '-' + result.type
   MyEventEmiter(sha256(cmd), result)
 
-  log.info(cmd, result)
+  log.debug(cmd, result)
 }
 
 async function onConnected (sock: net.Socket) {
@@ -135,27 +92,30 @@ async function onConnected (sock: net.Socket) {
   if (!result.state === true) {
     setInterval(() => {
       ReadDeviceReals(sock).then(data => {
-        log.info(data)
+        log.debug(data)
       })
     }, 60 * 1000)
 
     // let i = 0;
     // setInterval(() => {
     //   writeDeviceJk(sock, i % 32, (i / 32) % 2 >> 0).then(data => {
-    //     log.info(data);
+    //     log.debug(data);
     //   });
     //   i++;
     // }, 10 * 1000 + 1000);
   } else {
-    log.info(`断开与设备(${sock.remoteAddress}:${sock.remotePort}) 的连接`)
+    log.warn(`断开与设备(${sock.remoteAddress}:${sock.remotePort}) 的连接`)
     sock.destroy()
   }
 }
 function onClose (sock: net.Socket, error: boolean) {
-  log.info(sock.remoteAddress + ':' + sock.remotePort + ' 链接已断开', error)
+  log.debug(sock.remoteAddress + ':' + sock.remotePort + ' 链接已断开', error)
 }
 function onError (sock: net.Socket, error: boolean) {
-  log.info(sock.remoteAddress + ':' + sock.remotePort + ' 链路发生错误', error)
+  log.debug(
+    sock.remoteAddress + ':' + sock.remotePort + ' 链路发生错误',
+    error
+  )
 }
 
 /** ************************************** 初始化默认回调结束 *****************************************/
@@ -168,10 +128,10 @@ interface ServerInitInterface {
   error?: (sock: net.Socket, error: boolean) => void;
 }
 
-export function init (obj: ServerInitInterface) {
+export function init (obj: ServerInitInterface = {}) {
   server.on('connected', obj.connected ? obj.connected : onConnected)
-  server.on('data', obj.data ? obj.data : onClose)
-  server.on('close', obj.close ? obj.close : onReceive)
+  server.on('data', obj.data ? obj.data : onReceive)
+  server.on('close', obj.close ? obj.close : onClose)
   server.on('error', obj.error ? obj.error : onError)
 }
 /** **************************************  系统初始化区域结束  *****************************************/

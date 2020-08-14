@@ -1,111 +1,133 @@
-import * as server from './service'
-import * as db from './database'
-import reals from './database/model/reals'
+import * as Server from './service'
+import * as Db from './database'
+import * as Model from './database/model'
+import { deviceList, DeviceInterface, Device } from './device/device'
+// import * as Model from '@/app/main/database/'
+import log from '@/app/common/log'
+import net from 'net'
+
+/**
+ * 定时器
+ * @param time 定时时间 单位 s
+ */
+const delay = (time = 60) => {
+  return new Promise((resolve, reject) => {
+    const timeHandle: NodeJS.Timeout = setTimeout(() => {
+      resolve(timeHandle)
+    }, time * 1000)
+  })
+}
+
+/**
+ * 定时读取功能
+ * @param time 定时读取，单位 s
+ */
+const autoRead = (sock: net.Socket, time = 60) => {
+  return setInterval(() => {
+    Server.ReadDeviceReals(sock).then(data => {
+      log.debug(data)
+    })
+  }, time * 1000)
+}
+
+const getDeviceInfo = async (id: number) => {
+  if (deviceList.get(id)) return
+  let device: any = null
+  try {
+    const result = await Db.get(Db.tables.device, {
+      fac_id: id // eslint-disable-line
+    })
+    if (result) device = <Model.Device>result; // eslint-disable-line
+  } catch (error) {
+    log.warn(error.massage)
+  }
+  if (device) {
+    const list = new Device()
+    list.online = true
+    list.id = device.id
+    list.creatorId = device.create_id
+    list.facId = device.fac_id
+    list.createTime = device.create_time
+    list.remark = device.remark
+    list.facName = device.fac_name
+    list.facType = device.facType
+    list.longitude = device.fac_name
+    list.latitude = device.facType
+    list.readInterval = device.facType
+
+    const sensor = {
+      ele: device.ele_num.split('/').filter((value: string) => value !== '100'),
+      name: device.ele_name.split('/').filter((value: string) => value !== '-')
+    }
+    // list.ele = sensor.ele.map(async (value:string) => {
+    //   const result = Db.get(Db.tables.element, {indexs: sensor.ele})
+    // })
+    let result = await Db.all(Db.tables.element, { indexs: sensor.ele })
+    list.ele = result.map((value: Model.Element, index: number) => {
+      if (sensor.name[index]) value.name = sensor.name[index]
+      return value
+    })
+
+    const relay = {
+      ele: device.relay_num.split('/').filter((value: string) => value !== '0'),
+      name: device.relay_name
+        .split('/')
+        .filter((value: string) => value !== '-')
+    }
+    result = await Db.all(Db.tables.relay, { indexs: relay.ele })
+    list.relay = result.map((value: Model.Relay, index: number) => {
+      if (relay.name[index]) value.name = relay.name[index]
+      return value
+    })
+
+    if (device.relay_extend) {
+      const extRelay = {
+        ele: device.relay_extend_num
+          .split('/')
+          .filter((value: string) => value !== '0'),
+        name: device.relay_extend_name
+          .split('/')
+          .filter((value: string) => value !== '-')
+      }
+      result = await Db.all(Db.tables.relay, { indexs: extRelay.ele })
+      list.relay = result.map((value: Model.Relay, index: number) => {
+        if (relay.name[index]) value.name = relay.name[index]
+        return value
+      })
+    }
+    deviceList.set(id, list)
+  }
+}
+
+const onConnected = async (sock: net.Socket) => {
+  let flag = true // 数据是否有异常
+
+  try {
+    const deviceId = await Server.ReadDeviceId(sock)
+    if (!deviceId.state === true) {
+      getDeviceInfo(deviceId.data)
+      const list = deviceList.get(deviceId.data)
+      if (list) {
+        list.timeHand = autoRead(sock)
+        list.sock = sock
+      } else {
+        log.warn('未知设备' + deviceId.data + '接入')
+        flag = false
+      }
+    } else {
+      log.warn(deviceId.msg, deviceId)
+      flag = false
+    }
+  } catch (error) {
+    log.warn(error.massage)
+  }
+
+  if (!flag) {
+    log.warn(`断开与设备(${sock.remoteAddress}:${sock.remotePort}) 的连接`)
+    sock.destroy()
+  }
+}
 
 export function start () {
-  server.init()
-  // console.log(process.versions.electron);
-  // console.log(db);
-
-  // console.log(relay);
-  // relay.get({ abc: "1" });
-  // let ele = {};
-  // db.get(db.tables.element, { id: 4 })
-  //   .then(data => {
-  //     console.log(data);
-  //     ele = data;
-  //     // db.insert(db.tables.element, ele);
-  //   })
-  //   .catch(console.log);
-
-  // db.all(db.tables.relay)
-  //   .then(console.log)
-  //   .catch(console.log);
-
-  // db.all(db.tables.relay, { id: 1 })
-  //   .then(console.log)
-  //   .catch(console.log);
-
-  // db.all(db.tables.relay, { id: 1, indexs: 3 }, "or")
-  //   .then(console.log)
-  //   .catch((err: Error) => {
-  //     console.log(err, "所有查询错误");
-  //   });
-
-  // db.update(
-  //   db.tables.element,
-  //   { name: "sb", unit: "m/s" },
-  //   { id: 123, "or id": 124 },
-  //   ""
-  // );
-
-  // db.del(db.tables.element, { id: 123, "or id": 124 }, "");
-
-  // let real: reals = {
-  //   id: 0,
-  //   fac_id: 0,
-  //   data_time: 0,
-  //   e1: 0,
-  //   e2: 0,
-  //   e3: 0,
-  //   e4: 0,
-  //   e5: 0,
-  //   e6: 0,
-  //   e7: 0,
-  //   e8: 0,
-  //   e9: 0,
-  //   e10: 0,
-  //   e11: 0,
-  //   e12: 0,
-  //   e13: 0,
-  //   e14: 0,
-  //   e15: 0,
-  //   e16: 0,
-  //   JK1: 0,
-  //   JK2: 0,
-  //   JK3: 0,
-  //   JK4: 0,
-  //   JK5: 0,
-  //   JK6: 0,
-  //   JK7: 0,
-  //   JK8: 0,
-  //   JK9: 0,
-  //   JK10: 0,
-  //   JK11: 0,
-  //   JK12: 0,
-  //   JK13: 0,
-  //   JK14: 0,
-  //   JK15: 0,
-  //   JK16: 0,
-  //   JK17: 0,
-  //   JK18: 0,
-  //   JK19: 0,
-  //   JK20: 0,
-  //   JK21: 0,
-  //   JK22: 0,
-  //   JK23: 0,
-  //   JK24: 0,
-  //   JK25: 0,
-  //   JK26: 0,
-  //   JK27: 0,
-  //   JK28: 0,
-  //   JK29: 0,
-  //   JK30: 0,
-  //   JK31: 0,
-  //   JK32: 0
-  // };
-  // for (let i = 0; i < 100; i++)
-  //   db.insert(db.tables.reals, real)
-  //     .then(console.log)
-  //     .catch(console.log);
-  // // db.del(db.tables.reals)
-  // //   .then(console.log)
-  // //   .catch(console.log);
-  // db.get(db.tables.reals, { fac_id: 0 })
-  //   .then(data => {
-  //     console.log(data);
-  //     ele = data;
-  //     // db.insert(db.tables.element, ele);
-  //   })
-  //   .catch(console.log);
+  Server.init({ connected: onConnected })
 }

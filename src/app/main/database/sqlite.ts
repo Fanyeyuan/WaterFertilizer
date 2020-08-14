@@ -22,24 +22,6 @@ class Sqlite {
     // this.db = new sqlite3.Database('db.db');       //临时目录  调试下可用，build后用不了
     // this.db = new sqlite3.Database(':memory:');    //保存在内存中
     log.info('sqlite 数据库地址:' + dbPath)
-
-    // this.db.serialize(() => {
-    //   this.db.all(
-    //     "select * from sqlite_master where type = 'table'",
-    //     (err: any, res: any) => {
-    //       log.info(res);
-    //     }
-    //   );
-    //   this.tables.forEach((value: string) => {
-    //     this.db.all(
-    //       "select * from " + value + " where rowid = ?",
-    //       1,
-    //       (err: any, res: any) => {
-    //         log.info(err, res);
-    //       }
-    //     );
-    //   });
-    // });
   }
 
   public getDeviceInfo () {

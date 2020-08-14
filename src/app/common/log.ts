@@ -2,7 +2,7 @@ import log from 'electron-log'
 import path from 'path'
 
 log.transports.console.level = false
-log.transports.file.level = 'info'
+log.transports.file.level = 'silly'
 log.transports.file.maxSize = 500 * 1024 * 1024 // 日志大小最大500m
 
 // 这里是主要方法

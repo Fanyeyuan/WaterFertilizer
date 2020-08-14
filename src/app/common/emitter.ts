@@ -29,8 +29,8 @@ const MyEventOn = (event: string, timeout = 30) => {
       reject(new Error(`${event} 事件超时`))
     }, timeout)
     MyEmitter.once(event, (...params) => {
-      resolve(...params)
       clearTimeout(timehandle)
+      resolve(...params)
     })
   })
 }

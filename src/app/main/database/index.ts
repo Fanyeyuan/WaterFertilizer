@@ -11,15 +11,43 @@ function obj2str (obj: { [key: string]: any }, con: string) {
   return str
 }
 
+function obj2str2 (obj: { [key: string]: any }, con: string) {
+  const keys = Object.keys(obj)
+  let str = ''
+  for (let i = 0; i < keys.length; i++) {
+    if (obj[keys[i]] instanceof Array) {
+      str += `${keys[i]} in (${obj[keys[i]].join(',')}) ${
+        i + 1 === keys.length ? '' : con
+      } `
+    } else if (!(obj[keys[i]] instanceof Object)) {
+      str += `${keys[i]} = ${obj[keys[i]]} ${
+        i + 1 === keys.length ? '' : con
+      } `
+    }
+  }
+  return str
+}
+
 enum tables {
   device = 'xph_device',
+  facType = 'xph_fac_type',
   element = 'xph_element',
   log = 'xph_log',
   logControl = 'xph_log_control',
   logLoraSignal = 'xph_log_lora_signal',
   relay = 'xph_relay',
   reals = 'xph_reals',
-  history = 'xph_history'
+  history = 'xph_history',
+
+  crop = 'xph_crop',
+  fer = 'xph_fer',
+  group = 'xph_group',
+  groupDevice = 'xph_group_device',
+  turnRecord = 'xph_turn_record',
+  turnContent = 'xph_turn_content',
+  turnFer = 'xph_turn_fer',
+
+  sqliteSequence = 'sqlite_sequence'
 }
 
 const dbPath = path.join(__dirname, 'db.db')
@@ -40,11 +68,11 @@ const get = (
   op = 'and'
 ): Promise<any> => {
   const values = Object.values(obj)
-  const flag = obj2str(obj, op)
+  const flag = obj2str2(obj, op)
   const sql = 'select * from ' + tableName + ' where ' + flag
-  log.info(sql)
+  log.silly(sql)
   return new Promise((resolve, reject) => {
-    db.get(sql, values, (err: Error, row: any) => {
+    db.get(sql, (err: Error, row: any) => {
       !err ? resolve(row) : reject(err)
     })
   })
@@ -64,17 +92,17 @@ const all = (
   let sql = ''
   if (obj) {
     const values = Object.values(obj)
-    const flag = obj2str(obj, op)
+    const flag = obj2str2(obj, op)
     sql = 'select * from ' + tableName + ' where ' + flag
-    log.info(sql, values)
+    log.silly(sql, values)
     return new Promise((resolve, reject) => {
-      db.all(sql, values, (err: Error, row: any) => {
+      db.all(sql, (err: Error, row: any) => {
         !err ? resolve(row) : reject(err)
       })
     })
   } else {
     sql = 'select * from ' + tableName
-    log.info(sql)
+    log.silly(sql)
     return new Promise((resolve, reject) => {
       db.all(sql, (err: Error, row: any) => {
         !err ? resolve(row) : reject(err)
@@ -97,9 +125,9 @@ const insert = (
   const keys = Object.keys(data)
   const values = Object.values(data)
   const sql = `insert into ${tableName} (${keys.toString()}) values (${values.map(
-    value => '?'
+    () => '?'
   )})`
-  log.info(sql)
+  log.silly(sql)
   return new Promise((resolve, reject) => {
     db.run(sql, values, (err: Error, row: any) => {
       !err ? resolve(row) : reject(err)
@@ -125,7 +153,7 @@ const update = (
   const set = obj2str(data, ',')
   const flag = obj2str(condition, op)
   const sql = `update ${tableName} set ${set} where ${flag}`
-  log.info(sql)
+  log.silly(sql)
   const values = Object.values(data).concat(Object.values(condition))
   return new Promise((resolve, reject) => {
     db.run(sql, values, (err: Error, row: any) => {
@@ -145,7 +173,7 @@ const del = (tableName: tables, obj?: { [key: string]: any }, op = 'and') => {
     const values = Object.values(obj)
     const flag = obj2str(obj, op)
     const sql = 'delete from ' + tableName + ' where ' + flag
-    log.info(sql)
+    log.silly(sql)
     return new Promise((resolve, reject) => {
       db.all(sql, values, (err: Error, row: any) => {
         !err ? resolve(row) : reject(err)
@@ -155,7 +183,7 @@ const del = (tableName: tables, obj?: { [key: string]: any }, op = 'and') => {
     // const sql = "delete from sqlite_sequence where name ='" + tableName + "'";
     const sql =
       "update sqlite_sequence set seq = 0 where name= '" + tableName + "'"
-    log.info(sql)
+    log.silly(sql)
     return new Promise((resolve, reject) => {
       db.run('delete from ' + tableName, (err: Error) => {
         if (!err) {

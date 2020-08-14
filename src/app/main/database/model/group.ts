@@ -28,6 +28,11 @@ class Group {
   crop_id = 0;
 
   /**
+   * 水肥机设备ID
+   */
+  machine_id = 0;
+
+  /**
    * 备注信息
    */
   remark!: string;

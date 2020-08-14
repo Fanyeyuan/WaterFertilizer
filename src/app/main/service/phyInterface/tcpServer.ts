@@ -43,21 +43,21 @@ export default class TcpServer {
   }
 
   private onConnected (sock: net.Socket) {
-    log.info('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort)
+    log.debug('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort)
 
     const event = this.event.get('connected')
     !!event && event(sock)
   }
 
   private onReceiveHandle (sock: net.Socket, data: Buffer) {
-    log.info('DATA ' + sock.remoteAddress + ': ' + data)
+    log.debug('DATA ' + sock.remoteAddress + ': ' + data.toString())
 
     const event = this.event.get('data')
     !!event && event(sock, data)
   }
 
   private onCloseHandle (sock: net.Socket, hadError: boolean) {
-    log.info(
+    log.debug(
       'CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort + hadError
     )
 
@@ -66,7 +66,7 @@ export default class TcpServer {
   }
 
   private onErrorHandle (sock: net.Socket, error: Error) {
-    log.info(
+    log.debug(
       'CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort + error.message
     )
 
@@ -77,7 +77,7 @@ export default class TcpServer {
   public send (sock: net.Socket, data: number[]) {
     const result = sock.write(Buffer.of(...data))
     if (!result) {
-      log.info('数据暂时无法写入缓存' + data.join(' ') + sock)
+      log.warn('数据暂时无法写入缓存' + data.join(' ') + sock)
     }
   }
 
@@ -85,7 +85,7 @@ export default class TcpServer {
     if (this.supportEvent.indexOf(event) > -1) {
       this.event.set(event, callback)
     } else {
-      log.info(
+      log.warn(
         `目前不支持 ${event} 事件，仅支持 ${this.supportEvent.join(',')}`
       )
     }

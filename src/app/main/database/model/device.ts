@@ -22,12 +22,12 @@ interface Device {
   /**
    * 备注
    */
-  remark: string;
+  remark?: string;
 
   /**
    * 设备名称
    */
-  fac_name: string;
+  fac_name?: string;
 
   /**
    * 设备类型Id
@@ -61,12 +61,12 @@ interface Device {
   /**
    * 经度
    */
-  longitude: number;
+  longitude?: number;
 
   /**
    * 纬度
    */
-  latitude: number;
+  latitude?: number;
 
   /**
    * 读取时间间隔
@@ -81,34 +81,34 @@ interface Device {
   /**
    * 扩展继电器
    */
-  relay_extend: boolean;
+  relay_extend?: boolean;
 
   /**
    * 扩展继电器数量
    */
-  relay_extend_count: boolean;
+  relay_extend_count?: boolean;
 
   /**
    * 继电器通道配置
    * 0/0/0/0 ... 0/0
    */
-  relay_extend_num: string;
+  relay_extend_num?: string;
 
   /**
    * 继电器通道名称
    * -/-/-/- ... -/-
    */
-  relay_extend_name: string;
+  relay_extend_name?: string;
 
   /**
    * 设备 封面路径
    */
-  cover_url: string;
+  cover_url?: string;
 
   /**
    * 虫情相关
    * 暂无意义
    */
-  pest_imei: string;
+  pest_imei?: string;
 }
 export default Device
