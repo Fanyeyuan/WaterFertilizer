@@ -1,10 +1,14 @@
 <template>
   <div id="app">
-    <div id="nav">
+    <!-- <div id="nav">
       <router-link to="/">Home</router-link> |
+      <router-link to="/group">Group</router-link> |
+      <router-link to="/mapView">MapView</router-link> |
+      <router-link to="/param">Param</router-link> |
+      <router-link to="/setting">Setting</router-link> |
       <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    </div> -->
+    <router-view />
   </div>
 </template>
 
@@ -13,20 +17,28 @@
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+
+  height: 100%;
+  color: white;
 }
 
-#nav {
-  padding: 30px;
+* {
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+a {
+  text-decoration: none;
+}
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+ul,
+ol {
+  list-style: none;
+}
+
+body {
+  height: 100vh;
+  font-size: 16px;
 }
 </style>

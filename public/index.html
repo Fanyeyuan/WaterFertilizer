@@ -1,15 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <!-- 转换成rem布局 -->
+    <script>
+      fnResize();
+      window.onresize = function() {
+        fnResize();
+      };
+
+      function fnResize() {
+        var deviceWidth =
+          document.documentElement.clientWidth || window.innerWidth;
+        // if (deviceWidth >= 750) {
+        //     deviceWidth = 750;
+        // }
+        if (deviceWidth <= 320) {
+          deviceWidth = 320;
+        }
+        document.documentElement.style.fontSize = deviceWidth / 10.24 + "px";
+      }
+    </script>
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong
+        >We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work
+        properly without JavaScript enabled. Please enable it to
+        continue.</strong
+      >
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->

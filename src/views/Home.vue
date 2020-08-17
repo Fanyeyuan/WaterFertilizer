@@ -1,41 +1,44 @@
 <template>
   <div class="home">
-    <!-- <img alt="Vue logo" src="../assets/logo.png"> -->
-    <button
-      v-for="(item, index) in items"
-      :key="index"
-      @click="onButtonClick(item, index)"
-    >
-      JK{{ index }}--{{ item }}
-    </button>
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+    <s-header :header="header"></s-header>
+    <div class="body">
+      <s-block :width="2" :height="1" title="时间日期">
+        <s-clock></s-clock>
+      </s-block>
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
-<script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+<script lang="ts">
+import { Vue } from 'vue-property-decorator'
+import Component from 'vue-class-component'
 
-export default {
-  name: 'Home',
-  data () {
-    return {
-      items: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-    }
-  },
-  methods: {
-    onButtonClick (item, index) {
-      this.items[index] = Number(1 - this.items[index])
-      ipc.send("setRelay", { // eslint-disable-line
-        id: 15112501,
-        start: index,
-        state: this.items[index]
-      })
-      console.log(this.items, item)
-    }
-  },
+import sHeader from '@/components/home/Header.vue'
+
+import sBlock from '@/components/home/Block.vue'
+
+import sClock from '@/components/clock/Index.vue'
+
+@Component({
   components: {
-    HelloWorld
+    sHeader,
+    sBlock,
+    sClock
   }
+})
+export default class Home extends Vue {
+  // 头部标题参数
+  private header = '智能水肥控制系统';
 }
 </script>
+
+<style lang="scss" scoped>
+.home {
+  height: 100%;
+  background: url("~@/assets/image/home_background.49c292cf.jpg") no-repeat
+    center;
+  background-size: cover;
+  // position: relative;
+}
+</style>
