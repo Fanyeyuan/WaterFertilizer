@@ -1,6 +1,7 @@
 'use strict'
 
 import { start } from './app/main'
+import * as Api from './app/main/api'
 
 import path from 'path'
 import { app, protocol, BrowserWindow } from 'electron'
@@ -30,7 +31,7 @@ function createWindow () {
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: (process.env
         .ELECTRON_NODE_INTEGRATION as unknown) as boolean,
-      preload: path.join(__dirname, './preload.js')
+      preload: path.join(__dirname, 'preload.js')
     }
   })
 
@@ -45,6 +46,7 @@ function createWindow () {
   }
 
   start()
+  Api.on('getReals', win.webContents)
 
   win.on('closed', () => {
     win = null

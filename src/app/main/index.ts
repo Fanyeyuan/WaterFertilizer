@@ -5,6 +5,7 @@ import { deviceList, DeviceInterface, Device } from './device/device'
 // import * as Model from '@/app/main/database/'
 import log from '@/app/common/log'
 import net from 'net'
+import * as Api from './api'
 
 /**
  * 定时器
@@ -22,11 +23,9 @@ const delay = (time = 60) => {
  * 定时读取功能
  * @param time 定时读取，单位 s
  */
-const autoRead = (sock: net.Socket, time = 60) => {
+const autoRead = (sock: net.Socket, id: number, time = 60) => {
   return setInterval(() => {
-    Server.ReadDeviceReals(sock).then(data => {
-      log.debug(data)
-    })
+    Api.mainRadio('getReal', { id })
   }, time * 1000)
 }
 
@@ -46,7 +45,7 @@ const getDeviceInfo = async (id: number) => {
     list.online = true
     list.id = device.id
     list.creatorId = device.create_id
-    list.facId = device.fac_id
+    list.facId = device.fac_id; // eslint-disable-line
     list.createTime = device.create_time
     list.remark = device.remark
     list.facName = device.fac_name
@@ -105,10 +104,10 @@ const onConnected = async (sock: net.Socket) => {
   try {
     const deviceId = await Server.ReadDeviceId(sock)
     if (!deviceId.state === true) {
-      getDeviceInfo(deviceId.data)
+      await getDeviceInfo(deviceId.data)
       const list = deviceList.get(deviceId.data)
       if (list) {
-        list.timeHand = autoRead(sock)
+        list.timeHand = autoRead(sock, deviceId.data)
         list.sock = sock
       } else {
         log.warn('未知设备' + deviceId.data + '接入')
@@ -130,4 +129,6 @@ const onConnected = async (sock: net.Socket) => {
 
 export function start () {
   Server.init({ connected: onConnected })
+  Api.defaultApi()
+  // Db.del(Db.tables.reals);
 }

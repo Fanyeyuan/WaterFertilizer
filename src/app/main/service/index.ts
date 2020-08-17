@@ -7,7 +7,7 @@ import {
 } from './protocol'
 import net from 'net'
 import log from '@/app/common/log'
-import { sha256, MyEventOn, MyEventEmiter } from '@/app/common/emitter'
+import { sha256, MyEventOnce, MyEventEmiter } from '@/app/common/emitter'
 
 const server = new TcpServer(8899)
 const protocol = new Xph()
@@ -27,7 +27,7 @@ export async function read (
 
   const event = sha256(cmd)
 
-  return MyEventOn(event, timeout * 1000)
+  return MyEventOnce(event, timeout * 1000)
 }
 
 export function write (
@@ -44,7 +44,7 @@ export function write (
 
   const event = sha256(cmd)
 
-  return MyEventOn(event, timeout * 1000)
+  return MyEventOnce(event, timeout * 1000)
 }
 
 export function ReadDeviceId (sock: net.Socket) {
@@ -63,6 +63,22 @@ export function ReadDeviceReals (sock: net.Socket) {
     },
     1
   )
+}
+
+export function writeDeviceJks (
+  sock: net.Socket,
+  start: number,
+  num: number,
+  state: number[]
+) {
+  return write(sock, {
+    type: 'setDeviceRelay',
+    data: {
+      start,
+      num,
+      state: state
+    }
+  })
 }
 
 export function writeDeviceJk (sock: net.Socket, start: number, state: number) {

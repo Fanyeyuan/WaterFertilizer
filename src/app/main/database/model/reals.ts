@@ -1,257 +1,257 @@
-interface Reals {
+class Reals {
   /**
    * 主键id 自增
    */
-  id: number;
+  id?: number;
 
   /**
    * 设备ID
    */
-  fac_id: number;
+  fac_id = 0;
 
   /**
    * 数据插入时间
    */
-  data_time: number;
+  data_time = 0;
 
   /**
    * 要素1
    */
-  e1: number;
+  e1 = 0;
 
   /**
    * 要素2
    */
-  e2: number;
+  e2 = 0;
 
   /**
    * 要素3
    */
-  e3: number;
+  e3 = 0;
 
   /**
    * 要素4
    */
-  e4: number;
+  e4 = 0;
 
   /**
    * 要素5
    */
-  e5: number;
+  e5 = 0;
 
   /**
    * 要素6
    */
-  e6: number;
+  e6 = 0;
 
   /**
    * 要素7
    */
-  e7: number;
+  e7 = 0;
 
   /**
    * 要素8
    */
-  e8: number;
+  e8 = 0;
 
   /**
    * 要素9
    */
-  e9: number;
+  e9 = 0;
 
   /**
    * 要素10
    */
-  e10: number;
+  e10 = 0;
 
   /**
    * 要素11
    */
-  e11: number;
+  e11 = 0;
 
   /**
    * 要素12
    */
-  e12: number;
+  e12 = 0;
 
   /**
    * 要素13
    */
-  e13: number;
+  e13 = 0;
 
   /**
    * 要素14
    */
-  e14: number;
+  e14 = 0;
 
   /**
    * 要素15
    */
-  e15: number;
+  e15 = 0;
 
   /**
    * 要素16
    */
-  e16: number;
+  e16 = 0;
 
   /**
    * 继电器1
    */
-  JK1: number;
+  JK1 = 0;
 
   /**
    * 继电器2
    */
-  JK2: number;
+  JK2 = 0;
 
   /**
    * 继电器3
    */
-  JK3: number;
+  JK3 = 0;
 
   /**
    * 继电器4
    */
-  JK4: number;
+  JK4 = 0;
 
   /**
    * 继电器5
    */
-  JK5: number;
+  JK5 = 0;
 
   /**
    * 继电器6
    */
-  JK6: number;
+  JK6 = 0;
 
   /**
    * 继电器7
    */
-  JK7: number;
+  JK7 = 0;
 
   /**
    * 继电器8
    */
-  JK8: number;
+  JK8 = 0;
 
   /**
    * 继电器9
    */
-  JK9: number;
+  JK9 = 0;
 
   /**
    * 继电器10
    */
-  JK10: number;
+  JK10 = 0;
 
   /**
    * 继电器11
    */
-  JK11: number;
+  JK11 = 0;
 
   /**
    * 继电器12
    */
-  JK12: number;
+  JK12 = 0;
 
   /**
    * 继电器13
    */
-  JK13: number;
+  JK13 = 0;
 
   /**
    * 继电器14
    */
-  JK14: number;
+  JK14 = 0;
 
   /**
    * 继电器15
    */
-  JK15: number;
+  JK15 = 0;
 
   /**
    * 继电器16
    */
-  JK16: number;
+  JK16 = 0;
 
   /**
    * 继电器17
    */
-  JK17: number;
+  JK17 = 0;
 
   /**
    * 继电器18
    */
-  JK18: number;
+  JK18 = 0;
 
   /**
    * 继电器19
    */
-  JK19: number;
+  JK19 = 0;
 
   /**
    * 继电器20
    */
-  JK20: number;
+  JK20 = 0;
 
   /**
    * 继电器21
    */
-  JK21: number;
+  JK21 = 0;
 
   /**
    * 继电器22
    */
-  JK22: number;
+  JK22 = 0;
 
   /**
    * 继电器23
    */
-  JK23: number;
+  JK23 = 0;
 
   /**
    * 继电器24
    */
-  JK24: number;
+  JK24 = 0;
 
   /**
    * 继电器25
    */
-  JK25: number;
+  JK25 = 0;
 
   /**
    * 继电器26
    */
-  JK26: number;
+  JK26 = 0;
 
   /**
    * 继电器27
    */
-  JK27: number;
+  JK27 = 0;
 
   /**
    * 继电器28
    */
-  JK28: number;
+  JK28 = 0;
 
   /**
    * 继电器29
    */
-  JK29: number;
+  JK29 = 0;
 
   /**
    * 继电器30
    */
-  JK30: number;
+  JK30 = 0;
 
   /**
    * 继电器31
    */
-  JK31: number;
+  JK31 = 0;
 
   /**
    * 继电器32
    */
-  JK32: number;
+  JK32 = 0;
 }
 export default Reals

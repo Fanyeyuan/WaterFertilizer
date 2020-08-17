@@ -3,9 +3,9 @@ import crypto from 'crypto'
 import { EventEmitter } from 'events'
 import { promises } from 'dns'
 
-const sha256 = (data: any) => {
+const sha256 = (data: any, key = '123456') => {
   const hash = crypto
-    .createHmac('sha256', '123456')
+    .createHmac('sha256', key)
     .update(data)
     .digest('hex')
 
@@ -22,21 +22,32 @@ const MyEventOff = (event: string, listener?: (...args: any[]) => void) => {
   }
 }
 
-const MyEventOn = (event: string, timeout = 30) => {
+const MyEventOnce = (event: string, timeout?: number) => {
   return new Promise((resolve, reject) => {
-    const timehandle = setTimeout(() => {
-      MyEventOff(event)
-      reject(new Error(`${event} 事件超时`))
-    }, timeout)
+    let timehandle: any
+    if (timeout) {
+      timehandle = setTimeout(() => {
+        MyEventOff(event)
+        reject(new Error(`${event} 事件超时`))
+      }, timeout)
+    }
     MyEmitter.once(event, (...params) => {
-      clearTimeout(timehandle)
+      !!timehandle && clearTimeout(timehandle)
       resolve(...params)
     })
   })
 }
 
-const MyEventEmiter = (event: string, ...params: any) => {
+const MyEventOn = (event: string) => {
+  return new Promise((resolve, reject) => {
+    MyEmitter.on(event, (...params) => {
+      resolve(params)
+    })
+  })
+}
+
+const MyEventEmiter = (event: string, ...params: any[]) => {
   MyEmitter.emit(event, ...params)
 }
 
-export { sha256, MyEventOn, MyEventEmiter, MyEventOff }
+export { sha256, MyEventOnce, MyEventOn, MyEventEmiter, MyEventOff }

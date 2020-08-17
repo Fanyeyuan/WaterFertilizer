@@ -1,5 +1,4 @@
 import log from 'electron-log'
-import path from 'path'
 
 log.transports.console.level = false
 log.transports.file.level = 'silly'
