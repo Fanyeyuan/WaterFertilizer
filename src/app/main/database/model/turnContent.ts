@@ -18,7 +18,7 @@ class TurnContent {
   group_id = 0;
 
   /**
-   * 名称
+   * 灌区别称，如果没有，则用灌区名称代替
    */
   name!: string;
 
@@ -32,6 +32,18 @@ class TurnContent {
    * 0-仅灌溉 1-定时 2-定量 3-定比
    */
   irrigation_type = 0;
+
+  /**
+   * 灌区等待时间
+   * 单位 分钟
+   */
+  delay = 0;
+
+  /**
+   * 运行时间
+   * 单位 分钟
+   */
+  run_time = 30;
 
   /**
    * 肥料通道1 配置编号

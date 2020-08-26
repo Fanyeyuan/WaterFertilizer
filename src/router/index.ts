@@ -8,37 +8,62 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'Home',
-    component: Home,
+    component: Home
+  },
+  {
+    path: '/back',
+    name: 'Back',
+    component: () => import('../views/Back.vue'),
     children: [
       {
+        path: 'setting',
+        name: 'Setting',
+        component: () =>
+          import(/* webpackChunkName: "about" */ '../views/back/Setting.vue'),
+        children: [
+          {
+            path: 'device',
+            name: 'Device',
+            component: () => import('../views/back/setting/Device.vue')
+          },
+          {
+            path: 'other',
+            name: 'Other',
+            component: () => import('../views/back/setting/Other.vue')
+          },
+          {
+            path: '*',
+            redirect: 'setting'
+          }
+        ]
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: () =>
+          import(/* webpackChunkName: "about" */ '../views/back/About.vue')
+      },
+      {
         path: 'mapView',
-        component: () => import('../views/home/MapView.vue')
+        name: 'MapView',
+        component: () => import('../views/back/MapView.vue')
       },
       {
         path: 'group',
-        component: () => import('../views/home/Group.vue')
+        name: 'Group',
+        component: () => import('../views/back/Group.vue')
       },
       {
         path: 'param',
-        component: () => import('../views/home/Param.vue')
+        name: 'Param',
+        component: () => import('../views/back/Param.vue')
       }
     ]
-  },
-  {
-    path: '/setting',
-    name: 'Setting',
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/Setting.vue')
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue')
   }
+  // {
+  //   path: "*",
+  //   redirect: "/"
+  // }
 ]
 
 const router = new VueRouter({

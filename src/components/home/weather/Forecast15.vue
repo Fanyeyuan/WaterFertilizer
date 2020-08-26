@@ -1,0 +1,13 @@
+<template>
+  <div>15天预报</div>
+</template>
+
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator'
+
+@Component
+export default class Forecast15 extends Vue {}
+</script>
+
+<style scoped>
+</style>

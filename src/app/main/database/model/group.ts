@@ -15,7 +15,7 @@ class Group {
   /**
    * 分组名称
    */
-  name!: string;
+  name?: string;
 
   /**
    * 创建时间
@@ -35,6 +35,6 @@ class Group {
   /**
    * 备注信息
    */
-  remark!: string;
+  remark?: string;
 }
 export default Group

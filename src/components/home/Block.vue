@@ -18,8 +18,8 @@ import { Component, Vue, Prop } from 'vue-property-decorator'
 
 @Component
 export default class Block extends Vue {
+  @Prop({ type: Number }) private readonly height!: number;
   @Prop({ required: true, type: Number }) private readonly width!: number;
-  @Prop({ required: true, type: Number }) private readonly height!: number;
   @Prop({ required: true, type: String }) private readonly title!: string;
 
   get getBlockSize () {
@@ -45,31 +45,33 @@ export default class Block extends Vue {
   border: 1px solid rgba(68, 142, 168, 0.6);
 
   ul {
-    li {
-      position: absolute;
-      display: block;
-      padding: 0.1rem;
-      border: solid #44a7df;
+    &:first-child {
+      li {
+        position: absolute;
+        display: block;
+        padding: 0.1rem;
+        border: solid #44a7df;
 
-      &:nth-of-type(1) {
-        top: 0;
-        left: 0;
-        border-width: 2px 0 0 2px;
-      }
-      &:nth-of-type(2) {
-        top: 0;
-        right: 0;
-        border-width: 2px 2px 0 0;
-      }
-      &:nth-of-type(3) {
-        bottom: 0;
-        right: 0;
-        border-width: 0 2px 2px 0;
-      }
-      &:nth-of-type(4) {
-        bottom: 0;
-        left: 0;
-        border-width: 0 0 2px 2px;
+        &:nth-of-type(1) {
+          top: 0;
+          left: 0;
+          border-width: 2px 0 0 2px;
+        }
+        &:nth-of-type(2) {
+          top: 0;
+          right: 0;
+          border-width: 2px 2px 0 0;
+        }
+        &:nth-of-type(3) {
+          bottom: 0;
+          right: 0;
+          border-width: 0 2px 2px 0;
+        }
+        &:nth-of-type(4) {
+          bottom: 0;
+          left: 0;
+          border-width: 0 0 2px 2px;
+        }
       }
     }
   }

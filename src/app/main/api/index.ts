@@ -7,17 +7,22 @@ import log from '@/app/common/log'
 import { deviceList, DeviceInterface, Device } from '../device/device'
 import { ProtocolResponedInterface } from '@/app/main/service/protocol'
 
+interface EventProcessInterface {
+  event: string;
+  fun: (args: any) => any;
+}
+
 /**
  * 事件处理方式汇总表（相当于当前支持的事件）
  * event 事件名称  fun 处理方法
  */
-const EventProcess: { event: string; fun: (args: any) => any }[] = [
+const EventProcess: EventProcessInterface[] = [
   {
     event: 'getReal',
     fun: async (args: { id: number; addr?: number }) => {
       const device = deviceList.get(args.id)
       let result: ProtocolResponedInterface = {
-        type: '',
+        type: 'getReal',
         data: null,
         state: 0,
         msg: ''
@@ -56,7 +61,51 @@ const EventProcess: { event: string; fun: (args: any) => any }[] = [
         result.msg = '设备还未上线'
       }
 
-      result.ext = args
+      return result
+    }
+  },
+  {
+    event: 'getReals', // 从数据库获取最新数据
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getReals',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.reals, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.reals, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.reals); // eslint-disable-line
+        }
+
+        if (test) {
+          result.data = []
+
+          test.forEach((element: any) => {
+            const data = { id: element.fac_id, sensor: [], relay: [] }
+            for (let i = 1; i <= 16; i++) {
+              data.sensor.push(element[`e${i}`])
+            }
+            for (let i = 1; i <= 32; i++) {
+              data.relay.push(element[`JK${i}`])
+            }
+            result.data.push(data)
+          })
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前设备无实时数据'
+        }
+      } catch (error) {
+        log.warn('API-getReal', args, error.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+
       return result
     }
   },
@@ -140,6 +189,397 @@ const EventProcess: { event: string; fun: (args: any) => any }[] = [
       result.ext = args
       return result
     }
+  },
+  {
+    event: 'getDeivce',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getDeivce',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.device, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.device, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.device); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前设备为建立'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'createDeivce', // 新建一个设备信息
+    fun: async (args: { id: number }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createDeivce',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.device, args); // eslint-disable-line
+        result.data = test
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getHistory',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getHistory',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.history, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.history, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.history); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前设备没有历史数据'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getElement',
+    fun: async (args: { indexs: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getElement',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.indexs instanceof Array) {
+          test = await Db.all(Db.tables.element, { id: args.indexs }); // eslint-disable-line
+        } else if (typeof args.indexs === 'number') {
+          test = await Db.get(Db.tables.element, { id: args.indexs }); // eslint-disable-line
+        } else if (typeof args.indexs === 'undefined') {
+          test = await Db.all(Db.tables.element); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前元素序号不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getFacType',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getFacType',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.facType, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.facType, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.facType); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前设备类型不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getfer',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getfer',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.fer, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.fer, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.fer); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前肥料不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getGroup',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getGroup',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.group, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.group, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.group); // eslint-disable-line
+        }
+        if (test) {
+          if (test instanceof Array) {
+            result.data = test.map(async group => {
+              const device = await Db.all(Db.tables.groupDevice, {
+                group_id: group.id
+              })
+              const crop = await Db.all(Db.tables.crop, { id: group.id })
+              group.device = device
+              group.crop = crop
+              return group
+            })
+          } else {
+            const device = await Db.all(Db.tables.groupDevice, { id: test.id })
+            const crop = await Db.all(Db.tables.crop, { id: test.id })
+            result.data.device = device
+            result.data.crop = crop
+          }
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前肥料不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getControlLog',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getControlLog',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.logControl, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.logControl, { fac_id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.logControl); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前设备未控制过'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getRelayType',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getRelayType',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.relay, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.relay, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.relay); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前继电器类型不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getTurnRecord',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getTurnRecord',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.turnRecord, { indexs: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.turnRecord, { indexs: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.turnRecord); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前农事记录不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getturnContent',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getTurnFer',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.turnFer, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.turnFer, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.turnFer); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前农事记录不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getTurnContent',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getTurnContent',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.turnContent, {
+            turn_record_id: args.id
+          }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.turnContent, {
+            turn_record_id: args.id
+          }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.turnContent); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前农事记录不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
   }
 ]
 
@@ -173,7 +613,7 @@ const getSubscribeList = (event: string) => {
   return EventSubscribeList.get(event)
 }
 const deleteSubscribeList = (event: string, args: any) => {
-  const str = sha256(event, args.toString())
+  const str = sha256(event, JSON.stringify(args))
   return EventSubscribeList.delete(str)
 }
 const on = (event: string, win: Electron.WebContents) => {
@@ -213,7 +653,7 @@ const setPublishList = (
   win: Electron.WebContents,
   args: any
 ) => {
-  const str = sha256(event, args.toString())
+  const str = sha256(event, JSON.stringify(args))
   let wins = EventPublishList.get(event)
   // wins ? wins.push(win) : (wins = [win]);
   if (wins) {
@@ -228,11 +668,11 @@ const setPublishList = (
   return true
 }
 const getPublishList = (event: string, args: any) => {
-  const str = sha256(event, args.toString())
+  const str = sha256(event, JSON.stringify(args))
   return EventPublishList.get(str)
 }
 const deletePublishListKey = (event: string, args: any) => {
-  const str = sha256(event, args.toString())
+  const str = sha256(event, JSON.stringify(args))
   return EventPublishList.delete(str)
 }
 
@@ -253,14 +693,15 @@ const distribute = (
 
 const listener = (event: string) => {
   ipcMain.on(event, async (events, args) => {
-    log.info('调用api--' + event, events.sender.id, args)
     const state = setPublishList(event, events.sender, args)
+    log.info('调用api--' + event, state, events.sender.id, args)
 
     if (state) {
       const process = EventProcess.find((value: any) => value.event === event)
       let back: any = {}
       if (process) {
         back = await process.fun(args)
+        back.ext = args
         distribute(event, args, back)
       }
     }
@@ -268,9 +709,9 @@ const listener = (event: string) => {
 }
 
 const defaultApi = () => {
-  listener('getReal')
-  listener('setRelays')
-  listener('setRelay')
+  EventProcess.forEach((item: EventProcessInterface) => {
+    listener(item.event)
+  })
 }
 
 export { on, listener, defaultApi, mainRadio }

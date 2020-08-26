@@ -25,6 +25,9 @@ function createWindow () {
     height: 768,
     frame: false,
     // fullscreen: true,
+    x: 0,
+    y: 0,
+    resizable: false,
     autoHideMenuBar: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone

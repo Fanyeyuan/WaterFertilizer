@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop, Ref } from 'vue-property-decorator'
+import { Component, Vue, Prop, Ref, Watch } from 'vue-property-decorator'
 
 @Component
 export default class Segment extends Vue {
@@ -36,7 +36,11 @@ export default class Segment extends Vue {
   }
 
   private mounted () {
-    console.log(this.value)
+    this.drawLED()
+  }
+
+  @Watch('value')
+  private onValueChange () {
     this.drawLED()
   }
 
@@ -44,11 +48,9 @@ export default class Segment extends Vue {
     if (!this.value) {
       return
     }
-    console.log(this.canvas)
     const canvas = this.canvas
     canvas.width = this.width
     canvas.height = this.height
-    console.log(this.width, canvas.width)
     const canvasRenderContext2D = canvas.getContext('2d')
     const invokeNumber = {
       0: [

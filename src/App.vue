@@ -7,7 +7,7 @@
       <router-link to="/param">Param</router-link> |
       <router-link to="/setting">Setting</router-link> |
       <router-link to="/about">About</router-link>
-    </div> -->
+    </div>-->
     <router-view />
   </div>
 </template>
@@ -40,5 +40,6 @@ ol {
 body {
   height: 100vh;
   font-size: 16px;
+  // overflow: hidden;
 }
 </style>
