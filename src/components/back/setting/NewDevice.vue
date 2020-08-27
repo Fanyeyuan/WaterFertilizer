@@ -50,14 +50,17 @@ import {
 import { Device, FacType } from '@/app/main/database/model'
 import { MessageBox, Message } from 'element-ui'
 
+import { namespace } from 'vuex-class'
+
 import DeviceInfo from './DeviceInfo.vue'
 import ChannelInfo, { ChannelInfoInterface } from './ChannelInfo.vue'
 import RelayInfo, { RelayInfoInterface } from './RelayInfo.vue'
+const databaseModule = namespace('database')
 
 export interface DeviceInterface {
   id?: number;
-  creator_id: 0;
-  fac_id: 16061101; // eslint-disable-line
+  creator_id: number;
+  fac_id: number; // eslint-disable-line
   create_time: number; // eslint-disable-line
   remark: string; // eslint-disable-line
   fac_name: string; // eslint-disable-line
@@ -80,6 +83,8 @@ export interface DeviceInterface {
   }
 })
 export default class NewDevice extends Vue {
+  @databaseModule.State('FacType') private deviceTypes!: FacType[];
+
   @Prop({ type: String, default: '添加设备' }) private readonly title!: string;
   @PropSync('visible', { type: Boolean, required: true })
   private flag!: boolean;
@@ -88,25 +93,6 @@ export default class NewDevice extends Vue {
   private device!: DeviceInterface;
 
   private info: DeviceInterface = JSON.parse(JSON.stringify(this.device));
-
-  private deviceTypes: FacType[] = [
-    {
-      id: 1,
-      name: '气象站'
-    },
-    {
-      id: 2,
-      name: '管式墒情站'
-    },
-    {
-      id: 3,
-      name: '温室控制站'
-    },
-    {
-      id: 4,
-      name: '水肥机'
-    }
-  ];
 
   private onCancel () {
     MessageBox.confirm('确定取消吗?', '提示', {
@@ -122,7 +108,7 @@ export default class NewDevice extends Vue {
   private onConfirm () {
     console.log(this.info)
     let flag = true;
-    (!this.info.fac_id || this.info.fac_id < 16000000) && (flag = false)
+    (!this.info.fac_id || this.info.fac_id < 10000000) && (flag = false)
     !this.info.fac_name && (flag = false)
     !this.info.fac_type && (flag = false)
     !this.info.read_interval && (flag = false)

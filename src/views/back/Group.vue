@@ -9,10 +9,10 @@
             </div>
             <div
               v-for="device in deviceList"
-              :key="device.facId"
+              :key="device.fac_id"
               class="text item"
             >
-              {{ device.facName }}
+              {{ device.fac_name }}
             </div>
           </el-card>
         </div>
@@ -99,10 +99,25 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
+import {
+  Device as FacDevice,
+  FacType,
+  Element,
+  Relay,
+  Group as UserGroup,
+  Crop,
+  GroupDevice
+} from '@/app/main/database/model'
+
+import { namespace } from 'vuex-class'
 
 import NewGroup from '@/components/back/group/NewGroup.vue'
 
 import { Card, Tooltip } from 'element-ui'
+
+import { deviceInterface } from '@/components/back/setting/NewDevice.vue'
+const otherModule = namespace('other')
+const databaseModule = namespace('database')
 Vue.use(Card)
 Vue.use(Tooltip)
 
@@ -112,16 +127,10 @@ Vue.use(Tooltip)
   }
 })
 export default class Group extends Vue {
-  private deviceList: any = [
-    {
-      facId: 16061101,
-      facName: '设备16061101'
-    },
-    {
-      facId: 16061102,
-      facName: '设备16061102'
-    }
-  ];
+  @otherModule.State('DeviceList') deviceList!: deviceInterface[];
+  @databaseModule.State('Group') Group!: UserGroup[];
+  @databaseModule.State('Group') GroupDevice!: GroupDevice[];
+  @databaseModule.State('Crop') Crop!: Crop[];
 
   private groups: any[] = [
     {
@@ -237,6 +246,24 @@ export default class Group extends Vue {
       this.groups.push(data)
     }
   }
+
+  private updateGroupList () {
+    this.groups = this.Group.map((item: UserGroup) => {
+      return {
+        id: item.id,
+        userId: item.user_id,
+        name: item.name,
+        createTime: item.create_time,
+        crop: this.Crop.find((crop: Crop) => crop.id === item.crop_id),
+        machine: this.deviceList.find(
+          (device: FacDevice) => device.fac_id === item.machine_id
+        )
+        // device: this.GroupDevice.find(device:Fac)
+      }
+    })
+  }
+
+  // private mounted () {}
 }
 </script>
 

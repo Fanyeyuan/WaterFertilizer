@@ -1,1 +1,1 @@
-﻿select * from xph_reals where fac_id = 20190624
+﻿select * from xph_device where fac_id in (15112501)

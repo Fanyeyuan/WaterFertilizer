@@ -76,6 +76,9 @@
 import { Component, Vue, Prop, Watch, Emit } from 'vue-property-decorator'
 import { Relay } from '@/app/main/database/model'
 
+import { namespace } from 'vuex-class'
+const databaseModule = namespace('database')
+
 export interface RelayInfoInterface {
   name: string;
   relay: Relay;
@@ -84,6 +87,8 @@ export interface RelayInfoInterface {
 
 @Component
 export default class RelayInfo extends Vue {
+  @databaseModule.State('Relay') private relayTypes!: Relay[];
+
   @Prop({ type: Array, default: () => [] })
   private value!: RelayInfoInterface[];
 
@@ -99,18 +104,6 @@ export default class RelayInfo extends Vue {
     },
     status: 0
   };
-
-  private relayTypes = [
-    { id: 0, indexs: 0, name: '-' },
-    { id: 1, indexs: 1, name: '风机' },
-    { id: 2, indexs: 2, name: '水泵' },
-    { id: 3, indexs: 3, name: '增氧机' },
-    { id: 4, indexs: 4, name: '湿帘' },
-    { id: 5, indexs: 5, name: '遮阳' },
-    { id: 6, indexs: 6, name: '开窗' },
-    { id: 7, indexs: 7, name: '保温' },
-    { id: 8, indexs: 8, name: '投食机' }
-  ];
 
   @Emit('input')
   private onInfoChange () {

@@ -224,7 +224,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'createDeivce', // 新建一个设备信息
-    fun: async (args: { id: number }) => {
+    fun: async (args: { fac_id: number; [key: string]: any }) => {
       const result: ProtocolResponedInterface = {
         type: 'createDeivce',
         data: null,
@@ -232,8 +232,69 @@ const EventProcess: EventProcessInterface[] = [
         msg: ''
       }
       try {
-        let test = await Db.insert(Db.tables.device, args); // eslint-disable-line
-        result.data = test
+        const device = await Db.get(Db.tables.device, { fac_id: args.fac_id })
+        if (!device) {
+          let test = await Db.insert(Db.tables.device, args); // eslint-disable-line
+          result.data = test
+          result.msg = '设备新建成功'
+        } else {
+          result.state = 96
+          result.msg = '设备已存在，请修改ID 号'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateDeivce', // 新建一个设备信息
+    fun: async (args: { fac_id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateDeivce',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.device, { fac_id: args.fac_id })
+        if (device) {
+          const test = await Db.update(Db.tables.device, args, {
+            fac_id: args.fac_id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '设备修改成功'
+        } else {
+          result.state = 96
+          result.msg = '设备不存在，请修改ID 号'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteDeivce',
+    fun: async (args: { fac_id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteDeivce',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const test: any = await Db.del(Db.tables.device, { fac_id: args.fac_id })
+        if (test) {
+          result.data = test
+          result.msg = '设备删除成功'
+        } else {
+          result.msg = '当前设备为建立'
+        }
       } catch (err) {
         log.warn('API-getReal', args, err.message)
         result.state = 98
@@ -244,7 +305,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getHistory',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getHistory',
         data: null,
@@ -258,7 +319,9 @@ const EventProcess: EventProcessInterface[] = [
         } else if (typeof args.id === 'number') {
           test = await Db.get(Db.tables.history, { fac_id: args.id }); // eslint-disable-line
         } else if (typeof args.id === 'undefined') {
-          test = await Db.all(Db.tables.history); // eslint-disable-line
+          // test = await Db.all(Db.tables.history); // eslint-disable-line
+          result.state = 97
+          result.msg = '请指定设备ID 号'
         }
         if (test) {
           result.data = test
@@ -389,22 +452,23 @@ const EventProcess: EventProcessInterface[] = [
           test = await Db.all(Db.tables.group); // eslint-disable-line
         }
         if (test) {
-          if (test instanceof Array) {
-            result.data = test.map(async group => {
-              const device = await Db.all(Db.tables.groupDevice, {
-                group_id: group.id
-              })
-              const crop = await Db.all(Db.tables.crop, { id: group.id })
-              group.device = device
-              group.crop = crop
-              return group
-            })
-          } else {
-            const device = await Db.all(Db.tables.groupDevice, { id: test.id })
-            const crop = await Db.all(Db.tables.crop, { id: test.id })
-            result.data.device = device
-            result.data.crop = crop
-          }
+          // if (test instanceof Array) {
+          //   result.data = test.map(async group => {
+          //     const device = await Db.all(Db.tables.groupDevice, {
+          //       group_id: group.id
+          //     });
+          //     const crop = await Db.all(Db.tables.crop, { id: group.id });
+          //     group.device = device;
+          //     group.crop = crop;
+          //     return group;
+          //   });
+          // } else {
+          //   const device = await Db.all(Db.tables.groupDevice, { id: test.id });
+          //   const crop = await Db.all(Db.tables.crop, { id: test.id });
+          //   result.data.device = device;
+          //   result.data.crop = crop;
+          // }
+          result.data = test
           result.msg = '数据获取成功'
         } else {
           result.msg = '当前肥料不存在'
@@ -514,7 +578,7 @@ const EventProcess: EventProcessInterface[] = [
     }
   },
   {
-    event: 'getturnContent',
+    event: 'getTurnFer',
     fun: async (args: { id: number | number[] | undefined }) => {
       const result: ProtocolResponedInterface = {
         type: 'getTurnFer',
@@ -535,7 +599,7 @@ const EventProcess: EventProcessInterface[] = [
           result.data = test
           result.msg = '数据获取成功'
         } else {
-          result.msg = '当前农事记录不存在'
+          result.msg = '当前肥料不存在'
         }
       } catch (err) {
         log.warn('API-getReal', args, err.message)
@@ -682,7 +746,7 @@ const distribute = (
   back: ProtocolResponedInterface
 ) => {
   const lists = getPublishList(event, args)
-
+  // console.log(lists, back);
   if (lists) {
     lists.forEach((win: Electron.WebContents) => {
       win.send(event, back)
@@ -700,7 +764,7 @@ const listener = (event: string) => {
       const process = EventProcess.find((value: any) => value.event === event)
       let back: any = {}
       if (process) {
-        back = await process.fun(args)
+        back = await process.fun(JSON.parse(JSON.stringify(args)))
         back.ext = args
         distribute(event, args, back)
       }

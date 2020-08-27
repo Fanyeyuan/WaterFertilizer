@@ -3,11 +3,12 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-import Bus from '@/utils/bus'
+import * as Bus from '@/utils/bus'
 
 Vue.config.productionTip = false
 
-Vue.use(Bus)
+Vue.prototype.$bus = Bus
+// Vue.use(Bus)
 // log.info("da");
 // console.log(window);
 // window.ipc.send("getReals", { id: 15112501 });

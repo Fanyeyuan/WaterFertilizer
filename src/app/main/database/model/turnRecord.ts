@@ -28,7 +28,7 @@ class TurnRecord {
   start_time = 0;
 
   /**
-   * 轮灌状态
+   * 轮灌状态 0 - 初始状态， 1 成功， 2 失败， 3 操作中
    */
   state = 0;
 

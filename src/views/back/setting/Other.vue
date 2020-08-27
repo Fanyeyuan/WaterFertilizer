@@ -14,19 +14,21 @@ export default class Other extends Vue {
     // this.$bus.getDevices([15112501, 20190624]).then((args: any) => {
     //   console.log(args);
     // });
-    this.$bus.getDevice().then((args: any) => {
-      console.log(args)
-    })
-    this.$bus.getDevice([15112501]).then((args: any) => {
-      console.log(args)
-    })
-    this.$bus.getDevice(15112501).then((args: any) => {
-      console.log(args)
-    })
-    this.$bus.getGroup().then((args: any) => {
-      console.log(args)
-    })
-
+    // this.$bus.getDevice().then((args: any) => {
+    //   console.log(args);
+    // });
+    // this.$bus.getDevice().then((args: any) => {
+    //   console.log(args);
+    // });
+    // this.$bus.getDevice([15112501]).then((args: any) => {
+    //   console.log(args);
+    // });
+    // this.$bus.getDevice(15112501).then((args: any) => {
+    //   console.log(args);
+    // });
+    // this.$bus.getGroup().then((args: any) => {
+    //   console.log(args);
+    // });
     // this.$bus.getReal(15112501).then((args: any) => {
     //   console.log(args);
     // });

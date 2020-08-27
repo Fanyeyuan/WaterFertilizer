@@ -15,6 +15,6 @@ class FacType {
   /**
    * 备注信息
    */
-  remark!: string;
+  remark?: string;
 }
 export default FacType

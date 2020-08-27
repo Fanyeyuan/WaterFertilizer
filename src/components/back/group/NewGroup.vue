@@ -18,9 +18,9 @@
         <el-select v-model="form.machine" placeholder="请选择">
           <el-option
             v-for="item in machine"
-            :key="item.facId"
-            :label="item.facName"
-            :value="item.facId"
+            :key="item.fac_id"
+            :label="item.fac_name"
+            :value="item.fac_id"
           >
           </el-option>
         </el-select>
@@ -91,8 +91,8 @@ export default class NewGroup extends Vue {
   private generateData (list: any) {
     list.map((item: any) => {
       const valve = {
-        key: item.facId,
-        label: item.facName
+        key: item.fac_id,
+        label: item.fac_name
       }
       this.form.allValve.push(valve)
     })
@@ -105,11 +105,11 @@ export default class NewGroup extends Vue {
       this.form.name = group.name
       this.form.crop = group.crop
       this.form.machine = this.device.find(
-        item => item.facId === group.machine.facId
+        item => item.fac_id === group.machine.fac_id
       )
       this.form.valve = group.device.map((value: any) => {
-        const device = this.device.find(item => item.facId === value.facId)
-        return device.facId
+        const device = this.device.find(item => item.fac_id === value.fac_id)
+        return device.fac_id
       })
       // console.log(group, this.form);
     }
@@ -132,9 +132,9 @@ export default class NewGroup extends Vue {
         const data = {
           name: this.form.name,
           crop: this.form.crop,
-          machine: this.device.find(item => item.facId === this.form.machine),
+          machine: this.device.find(item => item.fac_id === this.form.machine),
           device: this.form.valve.map(value => {
-            return this.device.find(item => item.facId === value)
+            return this.device.find(item => item.fac_id === value)
           })
         }
         this.confirm(data)

@@ -61,6 +61,7 @@
       <new-device
         :visible.sync="visible"
         :device="info"
+        :title="title"
         @edit-device-confirm="onEditDeviceConfirm"
       ></new-device>
     </div>
@@ -70,6 +71,11 @@
 <script lang="ts">
 import { Component, Vue, PropSync } from 'vue-property-decorator'
 import moment from 'moment'
+
+import { namespace } from 'vuex-class'
+
+import * as Bus from '@/utils/bus'
+import { ResponedInterface } from './utils/types/type'
 
 import {
   Table,
@@ -82,13 +88,24 @@ import {
   Select,
   Option,
   Dialog,
-  Scrollbar
+  Scrollbar,
+  Message,
+  MessageBox
 } from 'element-ui'
 
-import { Device as FacDevice, FacType } from '@/app/main/database/model'
+import {
+  Device as FacDevice,
+  FacType,
+  Element,
+  Relay
+} from '@/app/main/database/model'
 import NewDevice, {
   deviceInterface
 } from '@/components/back/setting/NewDevice.vue'
+import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
+import { RelayInfoInterface } from '@/components/back/setting/RelayInfo.vue'
+const databaseModule = namespace('database')
+const otherModule = namespace('other')
 
 Vue.use(Table)
 Vue.use(TableColumn)
@@ -113,136 +130,25 @@ Vue.use(Scrollbar)
   }
 })
 export default class Device extends Vue {
-  private deviceList: deviceInterface[] = [
-    {
-      id: 1,
-      fac_name: "设备16061101", // eslint-disable-line
-      fac_type: {
-        // eslint-disable-line
-        id: 1,
-        name: '气象站'
-      },
-      remark: '2020/08/24 15:31:25',
-      creator_id: 0, // eslint-disable-line
-      fac_id: 16061101, // eslint-disable-line
-      create_time: new Date().getTime(), // eslint-disable-line
-      longitude: 138.1111,
-      latitude: 30.34234,
-      read_interval: 1, // eslint-disable-line
-      sensor: [
-        {
-          name: '-',
-          ele: {
-            id: 6,
-            indexs: '102',
-            name: '大气湿度',
-            unit: '%RH',
-            min: 0,
-            max: 100,
-            prec: 0.1
-          }
-        },
-        {
-          name: '-',
-          ele: {
-            id: 7,
-            indexs: '103',
-            name: '模拟气压',
-            unit: 'hPa',
-            min: 500,
-            max: 1500,
-            prec: 0.1
-          }
-        }
-      ],
-      relay: [
-        {
-          name: '-',
-          relay: {
-            id: 1,
-            indexs: 1,
-            name: '风机'
-          }
-        },
-        {
-          name: '-',
-          relay: {
-            id: 2,
-            indexs: 2,
-            name: '水泵'
-          }
-        }
-      ]
-    },
-    {
-      id: 2,
-      fac_name: "设备16061102", // eslint-disable-line
-      // eslint-disable-line
-      fac_type: {
-        id: 1,
-        name: '气象站'
-      },
-      remark: '2020/08/24 15:31:25',
-      creator_id: 0, // eslint-disable-line
-      fac_id: 16061102, // eslint-disable-line
-      create_time: new Date().getTime(), // eslint-disable-line
-      longitude: 138.1111,
-      latitude: 30.34234,
-      read_interval: 1, // eslint-disable-line
-      sensor: [
-        {
-          name: '-',
-          ele: {
-            id: 6,
-            indexs: '102',
-            name: '大气湿度',
-            unit: '%RH',
-            min: 0,
-            max: 100,
-            prec: 0.1
-          }
-        },
-        {
-          name: '-',
-          ele: {
-            id: 7,
-            indexs: '103',
-            name: '模拟气压',
-            unit: 'hPa',
-            min: 500,
-            max: 1500,
-            prec: 0.1
-          }
-        }
-      ],
-      relay: [
-        {
-          name: '-',
-          relay: {
-            id: 1,
-            indexs: 1,
-            name: '风机'
-          }
-        },
-        {
-          name: '-',
-          relay: {
-            id: 2,
-            indexs: 2,
-            name: '水泵'
-          }
-        }
-      ]
-    }
-  ];
+  @databaseModule.Action('saveDevice') saveDevice!: (param: any[]) => void;
+  @databaseModule.State('Device') Device!: FacDevice[];
+  @databaseModule.State('FacType') FacType!: FacType[];
+  @databaseModule.State('Element') Element!: Element[];
+  @databaseModule.State('Relay') Relay!: Relay[];
+  @otherModule.State('DeviceList') DeviceList!: deviceInterface[];
+  @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
 
+  private deviceList: deviceInterface[] = [];
+
+  private title = '添加设备';
   private visible = false;
   private defaultInfo = {
     creator_id: 0, // eslint-disable-line
     create_time: new Date().getTime(), // eslint-disable-line
     read_interval: 1, // eslint-disable-line
     sensor: [],
-    relay: []
+    relay: [],
+    exRelay: []
   };
 
   private info: deviceInterface | {} = this.defaultInfo;
@@ -250,41 +156,64 @@ export default class Device extends Vue {
   private handleEdit (index: number, row: deviceInterface) {
     this.info = row
     console.log(row)
+    this.title = '修改设备'
     this.visible = true
   }
 
-  private handleDelete (index: number) {
-    this.deviceList.splice(index, 1)
+  private handleDelete (index: number, row: deviceInterface) {
+    // this.deviceList.splice(index, 1);
+    MessageBox.confirm('确定删除该设备吗?', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(async () => {
+      const result = await Bus.deleteDeivce(row.fac_id)
+      if (result.state === 0) {
+        Message.success(result.msg)
+        this.updateDeviceState()
+      } else {
+        Message.error(result.msg)
+      }
+    })
   }
 
   private onAddClick () {
     // console.log("onAddClick");
+    this.title = '添加设备'
     this.visible = true
     this.info = JSON.parse(JSON.stringify(this.defaultInfo))
   }
 
   private onCloneClick () {
+    this.title = '克隆设备'
     this.visible = true
   }
 
-  private onEditDeviceConfirm (value: deviceInterface) {
+  private async onEditDeviceConfirm (value: deviceInterface) {
     const index = this.deviceList.findIndex(
       (item: any) => item.id === value.id
     )
+    let result: ResponedInterface
     if (index > -1) {
-      this.deviceList.splice(index, 1, value)
+      console.log(result, '1')
+      // result = <ResponedInterface>await this.deviceList.splice(index, 1, value);
+      result = await this.eidtDeviceToDB(value, true)
     } else {
-      value.id = this.deviceList[this.deviceList.length - 1].id + 1
-      this.deviceList.push(value)
-      // this.$bus.getReals().then(console.log);
-      // let result = JSON.parse(JSON.stringify(value));
-      // console.log(this.deviceList, value);
-      this.createNewDeviceToDB(value)
+      // value.id = this.deviceList[this.deviceList.length - 1].id + 1;
+      // this.deviceList.push(value);
+      result = await this.eidtDeviceToDB(value)
     }
-    this.visible = false
+
+    if (result.state !== 0) {
+      Message.error(result.type + '-' + result.msg)
+    } else {
+      this.visible = false
+      this.updateDeviceState()
+      Message.success(result.type + '-' + result.msg)
+    }
   }
 
-  private createNewDeviceToDB (value: deviceInterface) {
+  private eidtDeviceToDB (value: deviceInterface, isUpdate = false) {
     const device = new FacDevice()
     device.id = value.id
     device.creator_id = value.creator_id; // eslint-disable-line
@@ -295,24 +224,36 @@ export default class Device extends Vue {
     device.fac_type = value.fac_type.id; // eslint-disable-line
 
     let temp = []
-    temp = value.sensor.map(item => {
-      return item.ele.indexs
-    })
-    console.log(temp)
-    device.ele_num = temp.join("/"); // eslint-disable-line
-    temp = value.sensor.map(item => {
-      return item.name
-    })
-    device.ele_name = temp.join("/"); // eslint-disable-line
+    if (value.sensor.length) {
+      temp = value.sensor.map(item => {
+        return item.ele.indexs
+      })
+      device.ele_num = temp.join("/"); // eslint-disable-line
+      temp = value.sensor.map(item => {
+        return item.name
+      })
+      device.ele_name = temp.join("/"); // eslint-disable-line
+    } else {
+      device.ele_num =
+        '100/100/100/100/100/100/100/100/100/100/100/100/100/100/100/100'
+      device.ele_name = '-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-'
+    }
 
-    temp = value.relay.map(item => {
-      return item.relay.indexs
-    })
-    device.relay_num = temp.join("/"); // eslint-disable-line
-    temp = value.relay.map(item => {
-      return item.name
-    })
-    device.relay_name = temp.join("/"); // eslint-disable-line
+    if (value.relay.length) {
+      temp = value.relay.map(item => {
+        return item.relay.indexs
+      })
+      device.relay_num = temp.join("/"); // eslint-disable-line
+      temp = value.relay.map(item => {
+        return item.name
+      })
+      device.relay_name = temp.join("/"); // eslint-disable-line
+    } else {
+      device.relay_num =
+        '0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0'
+      device.relay_name =
+        '-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-'
+    }
 
     device.longitude = value.longitude
     device.latitude = value.latitude
@@ -320,27 +261,107 @@ export default class Device extends Vue {
 
     device.relay_extend = value.relay_extend; // eslint-disable-line
     device.relay_extend_count = value.relay_extend_count; // eslint-disable-line
-    temp = value.relay.map(item => {
-      return item.relay.indexs
+    if (value.exRelay.length) {
+      temp = value.exRelay.map(item => {
+        return item.relay.indexs
+      })
+      device.relay_extend_num = temp.join("/"); // eslint-disable-line
+      temp = value.exRelay.map(item => {
+        return item.name
+      })
+      device.relay_extend_name = temp.join("/"); // eslint-disable-line
+    } else {
+      const num = new Array(value.relay_extend_count).fill(0)
+      const name = new Array(value.relay_extend_count).fill('-')
+      device.relay_extend_num = num.join('/')
+      device.relay_extend_name = name.join('/')
+    }
+
+    if (isUpdate) {
+      return Bus.updateDeivce(device)
+    } else {
+      return Bus.createDeivce(device)
+    }
+  }
+
+  private updateDeviceState () {
+    Bus.getDevice().then((res: ResponedInterface) => {
+      if (res.state === 0) {
+        this.saveDevice(res.data)
+        this.updateDeviceList()
+      } else {
+        Message.warning(res.type + '-' + res.msg)
+      }
     })
-    device.relay_extend_num = temp.join("/"); // eslint-disable-line
-    temp = value.relay.map(item => {
-      return item.name
+  }
+
+  private updateDeviceList () {
+    this.deviceList = this.Device.map((item: FacDevice) => {
+      return {
+        id: item.id,
+        creator_id: item.creator_id,
+        fac_id: item.fac_id,
+        create_time: item.create_time,
+        remark: item.remark,
+        fac_name: item.fac_name,
+        fac_type: this.FacType.find((ele: FacType) => (ele.id = item.fac_type)),
+        sensor: this.getSensor(item.ele_num, item.ele_name, 16),
+        relay: this.getRelay(item.relay_num, item.relay_name, 32),
+        relay_extend: item.relay_extend,
+        relay_extend_count: item.relay_extend_count,
+        exRelay: this.getRelay(
+          item.relay_extend_num,
+          item.relay_extend_name,
+          item.relay_extend_count
+        ),
+        longitude: item.longitude,
+        latitude: item.latitude,
+        read_interval: item.read_interval
+      }
     })
-    device.relay_extend_name = temp.join("/"); // eslint-disable-line
-    this.$bus.createDeivce(device).then(console.log)
+    this.saveDeviceList(this.deviceList) // 更新 devicelist 状态
+  }
+
+  private getSensor (
+    num: string,
+    names: string,
+    maxNumber: number
+  ): ChannelInfoInterface[] {
+    const ele = num.split('/')
+    const name = names.split('/')
+    const sensor: ChannelInfoInterface[] = []
+    for (let i = 0; i < maxNumber; i++) {
+      const temp: ChannelInfoInterface = {
+        name: name[i],
+        ele: this.Element.find((item: Element) => item.indexs === ele[i]),
+        status: 0
+      }
+      sensor.push(temp)
+    }
+    return sensor
+  }
+
+  private getRelay (
+    num: string,
+    names: string,
+    maxNumber: number
+  ): RelayInfoInterface[] {
+    const ele = num.split('/')
+    const name = names.split('/')
+    const relay: RelayInfoInterface[] = []
+    for (let i = 0; i < maxNumber; i++) {
+      const temp: RelayInfoInterface = {
+        name: name[i],
+        relay: this.Relay.find((item: Relay) => item.indexs === Number(ele[i])),
+        status: 0
+      }
+      relay.push(temp)
+    }
+    return relay
   }
 
   private mounted () {
-    // this.$bus.getDevice().then(res => {
-    //   console.log(res);
-    //   if (!!res.data) {
-    //     // this.deviceList = res.data.map(device => {
-    //     //   let result = JSON.parse(JSON.stringify(device));
-    //     //   // result.
-    //     // });
-    //   }
-    // });
+    this.updateDeviceList()
   }
 }
 </script>

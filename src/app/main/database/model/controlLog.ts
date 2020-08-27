@@ -26,7 +26,7 @@ interface ControlLog {
 
   /**
    * 操作结果
-   * 0 - 关闭， 1 开启， 2 超时
+   * 0 - 关闭， 1 开启， 2 超时， 3操作中
    */
   result: number;
 }
