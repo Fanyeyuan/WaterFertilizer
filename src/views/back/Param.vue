@@ -6,6 +6,7 @@
           v-for="(param, index) in params"
           :key="index"
           :name="index.toString()"
+          style="padding:0"
         >
           <template slot="title">
             <div class="listTitle">
@@ -107,20 +108,28 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Emit } from 'vue-property-decorator'
+import { Component, Vue, Emit, Watch } from 'vue-property-decorator'
 import moment from 'moment'
 
 import { Collapse, CollapseItem, Message } from 'element-ui'
 
-import ParamList from '@/components/back/param/ParamList.vue'
+import ParamList, {
+  TurnRecordInterface
+} from '@/components/back/param/ParamList.vue'
 import NewParam from '@/components/back/param/NewParam.vue'
 
-import { Group } from '@/app/main/database/model'
+import {
+  Group,
+  TurnRecord,
+  TurnFer,
+  TurnContent
+} from '@/app/main/database/model'
 
 import { namespace } from 'vuex-class'
 Vue.use(Collapse)
 Vue.use(CollapseItem)
 const databaseModule = namespace('database')
+const otherModule = namespace('other')
 
 @Component({
   components: {
@@ -134,319 +143,16 @@ const databaseModule = namespace('database')
   }
 })
 export default class Param extends Vue {
-  @databaseModule.State('Grop') private GroupList: Group[];
-  private params = [
-    {
-      id: 1,
-      startTime: 1597970827000,
-      userId: 0,
-      name: '',
-      createTime: 0,
-      state: 0,
-      group: [
-        {
-          group: {
-            id: 1,
-            name: '灌区A',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 2,
-            name: '灌区B',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 3,
-            name: '灌区C',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 1,
-            name: '灌区A',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 1,
-            name: '灌区A',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 1,
-            name: '灌区A',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        },
-        {
-          group: {
-            id: 1,
-            name: '灌区A',
-            user_id: 0, // eslint-disable-line
-            create_time: 0, // eslint-disable-line
-            crop_id: 1, // eslint-disable-line
-            machine_id: 1 // eslint-disable-line
-          },
-          delay: 30,
-          runTime: 60,
-          type: 2,
-          fer: [
-            {
-              id: 1,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 2,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 3,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            },
-            {
-              id: 4,
-              ferRatio: 1,
-              ferWeight: 300,
-              ferTime: 30
-            }
-          ]
-        }
-      ]
-    }
-  ];
+  @databaseModule.State('Group') private GroupList: Group[];
+  @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
+  @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
+  @databaseModule.State('TurnRecord') private TurnRecord: TurnRecord[];
+  @otherModule.State('TurnInfo') private TurnInfo: TurnRecordInterface[];
+  @otherModule.Action('saveTurnInfo') private saveTurnInfo!: (
+    param: any[]
+  ) => void;
 
-  // private GroupList: Group[] = [
-  //   {
-  //     id: 1,
-  //     name: "灌区A",
-  //     user_id: 0, // eslint-disable-line
-  //     create_time: 0, // eslint-disable-line
-  //     crop_id: 1, // eslint-disable-line
-  //     machine_id: 1 // eslint-disable-line
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "灌区B",
-  //     user_id: 0, // eslint-disable-line
-  //     create_time: 0, // eslint-disable-line
-  //     crop_id: 1, // eslint-disable-line
-  //     machine_id: 1 // eslint-disable-line
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "灌区C",
-  //     user_id: 0, // eslint-disable-line
-  //     create_time: 0, // eslint-disable-line
-  //     crop_id: 1, // eslint-disable-line
-  //     machine_id: 1 // eslint-disable-line
-  //   }
-  // ];
+  private params: TurnRecordInterface[];
 
   private defaultGroupInfo = {
     group: {
@@ -543,13 +249,56 @@ export default class Param extends Vue {
     console.log(time)
     return time
   }
+
+  private get getParams () {
+    const params = this.TurnRecord.map((recode: TurnRecord) => {
+      const content = this.TurnContent.filter(
+        (content: TurnContent) => recode.id === content.turn_record_id
+      )
+
+      return {
+        id: recode.id,
+        startTime: recode.start_time,
+        userId: recode.user_id,
+        name: recode.name,
+        createTime: recode.create_time,
+        state: recode.state,
+        group: content.map((content: TurnContent) => {
+          return {
+            group: this.GroupList.find(
+              (group: Group) => group.id === content.group_id
+            ),
+            delay: content.delay,
+            runTime: content.run_time,
+            type: content.irrigation_type,
+            fer: this.TurnFer.filter(
+              (fer: TurnFer) =>
+                fer.id === content.fer1 ||
+                fer.id === content.fer2 ||
+                fer.id === content.fer3 ||
+                fer.id === content.fer4
+            )
+          }
+        })
+      }
+    })
+    console.log(params)
+    return params
+  }
+
+  @Watch('getParams', { immediate: true, deep: true })
+  private saveTurnInfos (value: any) {
+    this.saveTurnInfo(value)
+    this.params = JSON.parse(JSON.stringify(value))
+    console.log(value)
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 .list {
   .scroolbar {
-    height: 6.65rem;
+    height: 5rem;
     .listTitle {
       width: 100%;
       // height: 80px;

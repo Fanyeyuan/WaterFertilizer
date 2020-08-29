@@ -29,7 +29,7 @@ class TurnContent {
 
   /**
    * 灌溉类型
-   * 0-仅灌溉 1-定时 2-定量 3-定比
+   * 1-仅灌溉 2-定时 3-定量 4-定比
    */
   irrigation_type = 0;
 

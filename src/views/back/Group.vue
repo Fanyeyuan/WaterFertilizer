@@ -424,6 +424,7 @@ export default class Group extends Vue {
         device.fac_type.id !== 4 && device.fac_type.id !== 5
     )
 
+    // 将网关下的子设备，分开
     const add = []
     deviceWithoutMachine.forEach((device: DeviceInterface, index: number) => {
       // console.log(device);

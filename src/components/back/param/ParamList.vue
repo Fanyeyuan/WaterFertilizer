@@ -257,7 +257,7 @@ export default class ParamList extends Vue {
 
     .group {
       margin-right: 0.05rem;
-      height: 3.25rem;
+      height: 3.5rem;
     }
   }
 }

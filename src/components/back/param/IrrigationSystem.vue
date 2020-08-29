@@ -76,7 +76,7 @@
       <div class="right">
         <el-select
           size="small"
-          v-model="group.fer[channel].id"
+          v-model="group.fer[channel].fer_id"
           placeholder="请选择"
           :disabled="!editFlag"
         >

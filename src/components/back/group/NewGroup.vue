@@ -119,7 +119,7 @@ export default class NewGroup extends Vue {
         // if (!list.some((dev: any) => device.facId === dev.fac_id))
         //   list.push(device.device);
         // console.log(device, list);
-        if (device.exp != null) {
+        if (device.exp != null && device.device.fac_type === 6) {
           const tmp = JSON.parse(JSON.stringify(device.device))
           // console.log(tmp, list);
           tmp.relay = [device.device.relay[Number(device.exp)]]
