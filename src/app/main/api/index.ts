@@ -288,7 +288,9 @@ const EventProcess: EventProcessInterface[] = [
         msg: ''
       }
       try {
-        const test: any = await Db.del(Db.tables.device, { fac_id: args.fac_id })
+        const test: any = await Db.del(Db.tables.device, {
+          fac_id: args.fac_id
+        })
         if (test) {
           result.data = test
           result.msg = '设备删除成功'
@@ -402,10 +404,42 @@ const EventProcess: EventProcessInterface[] = [
     }
   },
   {
-    event: 'getfer',
+    event: 'getCrop',
     fun: async (args: { id: number | number[] | undefined }) => {
       const result: ProtocolResponedInterface = {
-        type: 'getfer',
+        type: 'getCrop',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.crop, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.crop, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.crop); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前作物不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getFer',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getFer',
         data: null,
         state: 0,
         msg: ''
@@ -471,7 +505,199 @@ const EventProcess: EventProcessInterface[] = [
           result.data = test
           result.msg = '数据获取成功'
         } else {
-          result.msg = '当前肥料不存在'
+          result.msg = '当前灌区不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'createGroup', // 新建一个设备信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createGroup',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.group, args); // eslint-disable-line
+        result.data = test
+        result.msg = '灌区新建成功'
+      } catch (err) {
+        log.warn('API-createGroup', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateGroup', // 更新一个灌区信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateGroup',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.group, { id: args.id })
+        if (device) {
+          const test = await Db.update(Db.tables.group, args, {
+            id: args.id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '灌区修改成功'
+        } else {
+          result.state = 96
+          result.msg = '灌区不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteGroup',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteGroup',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test
+        if (typeof args.id === 'undefined') {
+          test = await Db.del(Db.tables.group); // eslint-disable-line
+        } else {
+          test = await Db.del(Db.tables.group, { id: args.id }); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '灌区删除成功'
+        } else {
+          result.msg = '当前灌区为建立'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'getGroupDevice',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'getGroupDevice',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test: any
+        if (args.id instanceof Array) {
+          test = await Db.all(Db.tables.groupDevice, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'number') {
+          test = await Db.get(Db.tables.groupDevice, { id: args.id }); // eslint-disable-line
+        } else if (typeof args.id === 'undefined') {
+          test = await Db.all(Db.tables.groupDevice); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '数据获取成功'
+        } else {
+          result.msg = '当前灌区设备不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'createGroupDevice', // 新建一个设备信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createGroupDevice',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.groupDevice, args); // eslint-disable-line
+        result.data = test
+        result.msg = '灌区设备新建成功'
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateGroupDevice', // 更新一个灌区信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateGroupDevice',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.groupDevice, { id: args.id })
+        if (device) {
+          const test = await Db.update(Db.tables.groupDevice, args, {
+            id: args.id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '灌区设备修改成功'
+        } else {
+          result.state = 96
+          result.msg = '灌区设备不存在'
+        }
+      } catch (err) {
+        log.warn('API-getReal', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteGroupDevice',
+    fun: async (args: { id: number | number[] | undefined }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteGroupDevice',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test
+        if (typeof args.id === 'undefined') {
+          test = await Db.del(Db.tables.groupDevice); // eslint-disable-line
+        } else {
+          test = await Db.del(Db.tables.groupDevice, { id: args.id }); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '灌区设备删除成功'
+        } else {
+          result.msg = '当前灌区设备未建立'
         }
       } catch (err) {
         log.warn('API-getReal', args, err.message)

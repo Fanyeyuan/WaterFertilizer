@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
 import * as Bus from '@/utils/bus'
 import { ResponedInterface } from './utils/types/type'
 import { Message } from 'element-ui'
@@ -24,7 +24,10 @@ import {
   Device as FacDevice,
   FacType,
   Element,
-  Relay
+  Relay,
+  Group,
+  GroupDevice,
+  Crop
 } from '@/app/main/database/model'
 import { deviceInterface } from '@/components/back/setting/NewDevice.vue'
 import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
@@ -40,6 +43,7 @@ export default class App extends Vue {
   ) => void;
 
   @databaseModule.Action('saveCrop') saveCrop!: (param: any[]) => void;
+  @databaseModule.State('Crop') Crop!: Crop[];
   @databaseModule.Action('saveDevice') saveDevice!: (param: any[]) => void;
   @databaseModule.State('Device') Device!: FacDevice[];
   @databaseModule.Action('saveFacType') saveFacType!: (param: any[]) => void;
@@ -48,9 +52,12 @@ export default class App extends Vue {
   @databaseModule.State('Element') Element!: Element[];
   @databaseModule.Action('saveFer') saveFer!: (param: any[]) => void;
   @databaseModule.Action('saveGroup') saveGroup!: (param: any[]) => void;
+  @databaseModule.State('Group') Group!: Group[];
   @databaseModule.Action('saveGroupDevice') saveGroupDevice!: (
     param: any[]
   ) => void;
+
+  @databaseModule.State('GroupDevice') GroupDevice!: GroupDevice[];
 
   @databaseModule.Action('saveReals') saveReals!: (param: any[]) => void;
   @databaseModule.Action('saveRelay') saveRelay!: (param: any[]) => void;
@@ -66,9 +73,56 @@ export default class App extends Vue {
 
   @otherModule.State('DeviceList') DeviceList!: deviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
+  @otherModule.Action('saveGroupList') saveGroupList!: (param: any[]) => void;
 
-  private updateDeviceList () {
-    const list = this.Device.map((item: FacDevice) => {
+  private getSensor (
+    num: string,
+    names: string,
+    maxNumber: number
+  ): ChannelInfoInterface[] {
+    const ele = num.split('/')
+    const name = names.split('/')
+    const sensor: ChannelInfoInterface[] = []
+    for (let i = 0; i < maxNumber; i++) {
+      if (ele[i] !== '100') {
+        const temp: ChannelInfoInterface = {
+          name: name[i],
+          ele: this.Element.find((item: Element) => item.indexs === ele[i]),
+          status: 0
+        }
+        sensor.push(temp)
+      }
+    }
+    return sensor
+  }
+
+  private getRelay (
+    num: string,
+    names: string,
+    maxNumber: number
+  ): RelayInfoInterface[] {
+    const ele = num.split('/')
+    const name = names.split('/')
+    const relay: RelayInfoInterface[] = []
+    for (let i = 0; i < maxNumber; i++) {
+      if (ele[i] !== '0') {
+        const temp: RelayInfoInterface = {
+          index: i,
+          name: name[i],
+          relay: this.Relay.find(
+            (item: Relay) => item.indexs === Number(ele[i])
+          ),
+          status: 0
+        }
+        relay.push(temp)
+      }
+    }
+    return relay
+  }
+
+  // 存储设备列表
+  private get getDeviceList () {
+    return this.Device.map((item: FacDevice) => {
       return {
         id: item.id,
         creator_id: item.creator_id,
@@ -76,7 +130,7 @@ export default class App extends Vue {
         create_time: item.create_time,
         remark: item.remark,
         fac_name: item.fac_name,
-        fac_type: this.FacType.find((ele: FacType) => (ele.id = item.fac_type)),
+        fac_type: this.FacType.find((ele: FacType) => ele.id === item.fac_type),
         sensor: this.getSensor(item.ele_num, item.ele_name, 16),
         relay: this.getRelay(item.relay_num, item.relay_name, 32),
         relay_extend: item.relay_extend,
@@ -91,45 +145,63 @@ export default class App extends Vue {
         read_interval: item.read_interval
       }
     })
-    this.saveDeviceList(list)
   }
 
-  private getSensor (
-    num: string,
-    names: string,
-    maxNumber: number
-  ): ChannelInfoInterface[] {
-    const ele = num.split('/')
-    const name = names.split('/')
-    const sensor: ChannelInfoInterface[] = []
-    for (let i = 0; i < maxNumber; i++) {
-      const temp: ChannelInfoInterface = {
-        name: name[i],
-        ele: this.Element.find((item: Element) => item.indexs === ele[i]),
-        status: 0
-      }
-      sensor.push(temp)
-    }
-    return sensor
+  @Watch('getDeviceList')
+  private saveDeviceLists (value: any[]) {
+    this.saveDeviceList(value)
   }
 
-  private getRelay (
-    num: string,
-    names: string,
-    maxNumber: number
-  ): RelayInfoInterface[] {
-    const ele = num.split('/')
-    const name = names.split('/')
-    const relay: RelayInfoInterface[] = []
-    for (let i = 0; i < maxNumber; i++) {
-      const temp: RelayInfoInterface = {
-        name: name[i],
-        relay: this.Relay.find((item: Relay) => item.indexs === Number(ele[i])),
-        status: 0
-      }
-      relay.push(temp)
+  // 存储灌区列表
+  private get getGroupList () {
+    const getGroupDevice = (groupId: number) => {
+      const groupDeviceList = this.GroupDevice.filter(
+        (item: GroupDevice) => item.group_id === groupId
+      )
+
+      return groupDeviceList.map((item: GroupDevice) => {
+        const device = this.DeviceList.find(
+          (device: deviceInterface) => device.fac_id === item.fac_id
+        )
+        return {
+          id: item.id,
+          facId: item.fac_id,
+          facName: item.name || device.fac_name,
+          exp: item.exp,
+          group: item,
+          device
+        }
+      })
     }
-    return relay
+    const getGroupMachine = (machineId: number) => {
+      const machine = this.DeviceList.find(
+        (device: FacDevice) => device.fac_id === machineId
+      )
+      return {
+        facName: machine.fac_name,
+        facId: machine.fac_id,
+        device: machine,
+        exp: null
+      }
+    }
+    return this.Group.map((item: Group) => {
+      return {
+        id: item.id,
+        userId: item.user_id,
+        name: item.name,
+        createTime: item.create_time,
+        crop: this.Crop.find((crop: Crop) => crop.id === item.crop_id),
+        machine: this.DeviceList.find(
+          (device: FacDevice) => device.fac_id === item.machine_id
+        ),
+        device: getGroupDevice(item.id)
+      }
+    })
+  }
+
+  @Watch('getGroupList')
+  private saveGroupLists (group: any) {
+    this.saveGroupList(group)
   }
 
   private mounted () {
@@ -143,7 +215,6 @@ export default class App extends Vue {
     Bus.getDevice().then((res: ResponedInterface) => {
       if (res.state === 0) {
         this.saveDevice(res.data)
-        this.updateDeviceList()
       } else {
         Message.warning(res.type + '-' + res.msg)
       }
@@ -151,6 +222,13 @@ export default class App extends Vue {
     Bus.getGroup().then((res: ResponedInterface) => {
       if (res.state === 0) {
         this.saveGroup(res.data)
+      } else {
+        Message.warning(res.type + '-' + res.msg)
+      }
+    })
+    Bus.getGroupDevice().then((res: ResponedInterface) => {
+      if (res.state === 0) {
+        this.saveGroupDevice(res.data)
       } else {
         Message.warning(res.type + '-' + res.msg)
       }
@@ -172,6 +250,13 @@ export default class App extends Vue {
     Bus.getFer().then((res: ResponedInterface) => {
       if (res.state === 0) {
         this.saveFer(res.data)
+      } else {
+        Message.warning(res.type + '-' + res.msg)
+      }
+    })
+    Bus.getCrop().then((res: ResponedInterface) => {
+      if (res.state === 0) {
+        this.saveCrop(res.data)
       } else {
         Message.warning(res.type + '-' + res.msg)
       }

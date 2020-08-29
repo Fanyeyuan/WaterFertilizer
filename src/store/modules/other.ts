@@ -1,17 +1,24 @@
 import { Commit } from 'vuex'
 const state: any = {
-  DeviceList: []
+  DeviceList: [],
+  GroupList: []
 }
 
 const mutations: any = {
   saveDeviceList (states: any, params: object) {
     states.DeviceList = params
+  },
+  saveGroupList (states: any, params: object) {
+    states.saveGroupList = params
   }
 }
 
 const actions: any = {
   saveDeviceList (context: { commit: Commit }, params: object) {
     context.commit('saveDeviceList', params)
+  },
+  saveGroupList (context: { commit: Commit }, params: object) {
+    context.commit('saveGroupList', params)
   }
 }
 

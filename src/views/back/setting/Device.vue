@@ -304,7 +304,7 @@ export default class Device extends Vue {
         create_time: item.create_time,
         remark: item.remark,
         fac_name: item.fac_name,
-        fac_type: this.FacType.find((ele: FacType) => (ele.id = item.fac_type)),
+        fac_type: this.FacType.find((ele: FacType) => ele.id === item.fac_type),
         sensor: this.getSensor(item.ele_num, item.ele_name, 16),
         relay: this.getRelay(item.relay_num, item.relay_name, 32),
         relay_extend: item.relay_extend,
@@ -350,12 +350,17 @@ export default class Device extends Vue {
     const name = names.split('/')
     const relay: RelayInfoInterface[] = []
     for (let i = 0; i < maxNumber; i++) {
-      const temp: RelayInfoInterface = {
-        name: name[i],
-        relay: this.Relay.find((item: Relay) => item.indexs === Number(ele[i])),
-        status: 0
+      if (ele[i] !== '0') {
+        const temp: RelayInfoInterface = {
+          index: i,
+          name: name[i],
+          relay: this.Relay.find(
+            (item: Relay) => item.indexs === Number(ele[i])
+          ),
+          status: 0
+        }
+        relay.push(temp)
       }
-      relay.push(temp)
     }
     return relay
   }

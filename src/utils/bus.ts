@@ -11,10 +11,18 @@ enum BusEvents {
   updateDeivce = 'updateDeivce', // 修改一个设备信息
   deleteDeivce = 'deleteDeivce', // 删除指定设备，如果不指定则清空设备表，可为 数组或者数字
   getGroup = 'getGroup', // 获取灌区信息
+  createGroup = 'createGroup', // 获取灌区信息
+  updateGroup = 'updateGroup', // 获取灌区信息
+  deleteGroup = 'deleteGroup', // 获取灌区信息
+  getGroupDevice = 'getGroupDevice', // 获取灌区信息
+  createGroupDevice = 'createGroupDevice', // 获取灌区信息
+  updateGroupDevice = 'updateGroupDevice', // 获取灌区信息
+  deleteGroupDevice = 'deleteGroupDevice', // 获取灌区信息
   getHistory = 'getHistory', // 获取指定id 历史数据
   getElement = 'getElement', // 获取元素信息
   getFacType = 'getFacType', // 获取设备类型
   getFer = 'getFer', // 获取肥料类型
+  getCrop = 'getCrop', // 获取肥料类型
   getControlLog = 'getControlLog', // 获取指定设备的控制日志
   getRelayType = 'getRelayType', // 获取继电器类型
   getTurnRecord = 'getTurnRecord', // 获取轮灌信息
@@ -50,7 +58,7 @@ export function event (eve: string, args: any) {
   })
 }
 
-export function getReals (id: number[] | number | undefined): Promise<any> {
+export function getReals (id?: number[] | number): Promise<any> {
   return event(BusEvents.getReals, { id })
 }
 
@@ -76,7 +84,7 @@ export function setRelay (
   return event(BusEvents.setRelay, { id, start, num, state })
 }
 
-export function getDevice (id: number[] | number | undefined) {
+export function getDevice (id?: number[] | number) {
   return event(BusEvents.getDeivce, { id })
 }
 
@@ -87,46 +95,72 @@ export function updateDeivce (device: object) {
   return event(BusEvents.updateDeivce, device)
 }
 
-export function deleteDeivce (id: number[] | number | undefined) {
+export function deleteDeivce (id?: number[] | number) {
   return event(BusEvents.deleteDeivce, { fac_id: id })
 }
 
-export function getGroup (id: number[] | number | undefined) {
+export function getGroup (id?: number[] | number) {
   return event(BusEvents.getGroup, { id })
+}
+export function createGroup (device: object) {
+  return event(BusEvents.createGroup, device)
+}
+export function updateGroup (device: object) {
+  return event(BusEvents.updateGroup, device)
+}
+export function deleteGroup (id?: number[] | number) {
+  return event(BusEvents.deleteGroup, { id: id })
+}
+
+export function getGroupDevice (id?: number[] | number) {
+  return event(BusEvents.getGroupDevice, { id })
+}
+export function createGroupDevice (device: object) {
+  return event(BusEvents.createGroupDevice, device)
+}
+export function updateGroupDevice (device: object) {
+  return event(BusEvents.updateGroupDevice, device)
+}
+export function deleteGroupDevice (id?: number[] | number) {
+  return event(BusEvents.deleteGroupDevice, { id: id })
 }
 
 export function getHistory (id: number[] | number) {
   return event(BusEvents.getHistory, { id })
 }
 
-export function getElement (id: number[] | number | undefined) {
+export function getElement (id?: number[] | number) {
   return event(BusEvents.getElement, { id })
 }
 
-export function getFacType (id: number[] | number | undefined) {
+export function getFacType (id?: number[] | number) {
   return event(BusEvents.getFacType, { id })
 }
 
-export function getFer (id: number[] | number | undefined) {
+export function getCrop (id?: number[] | number) {
+  return event(BusEvents.getCrop, { id })
+}
+
+export function getFer (id?: number[] | number) {
   return event(BusEvents.getFer, { id })
 }
 
-export function getControlLog (id: number[] | number | undefined) {
+export function getControlLog (id?: number[] | number) {
   return event(BusEvents.getControlLog, { id })
 }
 
-export function getRelayType (id: number[] | number | undefined) {
+export function getRelayType (id?: number[] | number) {
   return event(BusEvents.getRelayType, { id })
 }
 
-export function getTurnRecord (id: number[] | number | undefined) {
+export function getTurnRecord (id?: number[] | number) {
   return event(BusEvents.getTurnRecord, { id })
 }
 
-export function getTurnFer (id: number[] | number | undefined) {
+export function getTurnFer (id?: number[] | number) {
   return event(BusEvents.getTurnFer, { id })
 }
 
-export function getTurnContent (id: number[] | number | undefined) {
+export function getTurnContent (id?: number[] | number) {
   return event(BusEvents.getTurnContent, { id })
 }

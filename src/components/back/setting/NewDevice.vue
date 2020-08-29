@@ -14,7 +14,11 @@
   >
     <el-row type="flex">
       <el-col :span="6">
-        <device-info :info="info" :device-types="deviceTypes"></device-info>
+        <device-info
+          :info="info"
+          :device-types="deviceTypes"
+          ref="refDeviceInfo"
+        ></device-info>
       </el-col>
       <el-col :offset="1" :span="17">
         <el-scrollbar class="scroolbar">
@@ -45,7 +49,8 @@ import {
   Prop,
   PropSync,
   Watch,
-  Emit
+  Emit,
+  Ref
 } from 'vue-property-decorator'
 import { Device, FacType } from '@/app/main/database/model'
 import { MessageBox, Message } from 'element-ui'
@@ -83,6 +88,7 @@ export interface DeviceInterface {
   }
 })
 export default class NewDevice extends Vue {
+  @Ref() readonly refDeviceInfo!: DeviceInfo;
   @databaseModule.State('FacType') private deviceTypes!: FacType[];
 
   @Prop({ type: String, default: '添加设备' }) private readonly title!: string;
@@ -106,34 +112,43 @@ export default class NewDevice extends Vue {
   }
 
   private onConfirm () {
-    console.log(this.info)
-    let flag = true;
-    (!this.info.fac_id || this.info.fac_id < 10000000) && (flag = false)
-    !this.info.fac_name && (flag = false)
-    !this.info.fac_type && (flag = false)
-    !this.info.read_interval && (flag = false)
-    !this.info.relay_extend_count && this.info.relay_extend && (flag = false)
-    !!this.info.sensor &&
-      !this.info.sensor.length &&
-      this.info.relay &&
-      !this.info.relay.length &&
-      (flag = false)
+    // console.log(this.info)
+    this.refDeviceInfo.infoForm.validate((valid: any) => {
+      if (valid) {
+        let flag = true;
+        (!this.info.fac_id || this.info.fac_id < 10000000) && (flag = false)
+        !this.info.fac_name && (flag = false)
+        !this.info.fac_type && (flag = false)
+        !this.info.read_interval && (flag = false)
+        !this.info.relay_extend_count &&
+          this.info.relay_extend &&
+          (flag = false)
+        !!this.info.sensor &&
+          !this.info.sensor.length &&
+          this.info.relay &&
+          !this.info.relay.length &&
+          (flag = false)
 
-    if (flag === true) {
-      MessageBox.confirm(`确定要${this.title}吗?`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$emit('edit-device-confirm', this.info)
-      })
-    } else {
-      Message.info('参数错误，请检查参数')
-    }
+        if (flag === true) {
+          MessageBox.confirm(`确定要${this.title}吗?`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.$emit('edit-device-confirm', this.info)
+          })
+        } else {
+          Message.error('参数错误，请检查参数')
+        }
+      } else {
+        Message.error('请输入相应参数')
+      }
+    })
   }
 
   @Watch('device', { immediate: true, deep: true })
   private deviceChange (value: DeviceInterface) {
+    console.log(value)
     this.info = JSON.parse(JSON.stringify(value))
   }
 }

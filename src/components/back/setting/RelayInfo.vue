@@ -80,6 +80,7 @@ import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')
 
 export interface RelayInfoInterface {
+  index: 0;
   name: string;
   relay: Relay;
   status?: number;
@@ -96,6 +97,7 @@ export default class RelayInfo extends Vue {
   @Prop({ type: Number, default: 1 }) private relayStartNumber!: number;
   private relay!: RelayInfoInterface[];
   private defaultRelayInfo: RelayInfoInterface = {
+    index: 0,
     name: '-',
     relay: {
       id: 0,
@@ -121,6 +123,7 @@ export default class RelayInfo extends Vue {
     // console.log(this.relayNumber);
     for (let i = this.relay.length; i < this.relayNumber; i++) {
       const data = JSON.parse(JSON.stringify(this.defaultRelayInfo))
+      data.index = i
       this.relay.push(data)
     }
   }

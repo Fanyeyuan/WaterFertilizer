@@ -65,7 +65,6 @@
               <irrigation-system
                 class="group"
                 :param="group"
-                :ferType="ferType"
                 :GroupList="GroupList"
                 @irrigation-system-check-click="onEditGroupClick"
                 @irrigation-system-delete-click="onDeleteGroupClick(index)"
@@ -75,7 +74,6 @@
               <irrigation-system
                 class="group"
                 :param="addGroup"
-                :ferType="ferType"
                 :GroupList="GroupList"
                 :flag="true"
                 @irrigation-system-check-click="onAddGroupClick"
@@ -136,7 +134,6 @@ export interface TurnRecordInterface {
 })
 export default class ParamList extends Vue {
   private editFlag = false;
-  @Prop({ type: Array, required: true }) private ferType!: any;
   @Prop({ type: Object, required: true }) private params!: TurnRecordInterface;
   private param!: TurnRecordInterface;
   private addGroup: TurnGroupContent | null = null;

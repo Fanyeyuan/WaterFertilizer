@@ -37,7 +37,6 @@
             </div>
           </template>
           <param-list
-            :fer-type="ferType"
             :params="param"
             :group-list="GroupList"
             :default-group-info="defaultGroupInfo"
@@ -84,7 +83,6 @@
           </template>
           <param-list
             :flag="true"
-            :fer-type="ferType"
             :params="addParam"
             :group-list="GroupList"
             :default-group-info="defaultGroupInfo"
@@ -118,8 +116,11 @@ import ParamList from '@/components/back/param/ParamList.vue'
 import NewParam from '@/components/back/param/NewParam.vue'
 
 import { Group } from '@/app/main/database/model'
+
+import { namespace } from 'vuex-class'
 Vue.use(Collapse)
 Vue.use(CollapseItem)
+const databaseModule = namespace('database')
 
 @Component({
   components: {
@@ -133,6 +134,7 @@ Vue.use(CollapseItem)
   }
 })
 export default class Param extends Vue {
+  @databaseModule.State('Grop') private GroupList: Group[];
   private params = [
     {
       id: 1,
@@ -419,51 +421,32 @@ export default class Param extends Vue {
     }
   ];
 
-  private ferType = [
-    {
-      id: 1,
-      name: '氮肥'
-    },
-    {
-      id: 2,
-      name: '磷肥'
-    },
-    {
-      id: 3,
-      name: '钾肥'
-    },
-    {
-      id: 4,
-      name: '碳肥'
-    }
-  ];
-
-  private GroupList: Group[] = [
-    {
-      id: 1,
-      name: '灌区A',
-      user_id: 0, // eslint-disable-line
-      create_time: 0, // eslint-disable-line
-      crop_id: 1, // eslint-disable-line
-      machine_id: 1 // eslint-disable-line
-    },
-    {
-      id: 2,
-      name: '灌区B',
-      user_id: 0, // eslint-disable-line
-      create_time: 0, // eslint-disable-line
-      crop_id: 1, // eslint-disable-line
-      machine_id: 1 // eslint-disable-line
-    },
-    {
-      id: 3,
-      name: '灌区C',
-      user_id: 0, // eslint-disable-line
-      create_time: 0, // eslint-disable-line
-      crop_id: 1, // eslint-disable-line
-      machine_id: 1 // eslint-disable-line
-    }
-  ];
+  // private GroupList: Group[] = [
+  //   {
+  //     id: 1,
+  //     name: "灌区A",
+  //     user_id: 0, // eslint-disable-line
+  //     create_time: 0, // eslint-disable-line
+  //     crop_id: 1, // eslint-disable-line
+  //     machine_id: 1 // eslint-disable-line
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "灌区B",
+  //     user_id: 0, // eslint-disable-line
+  //     create_time: 0, // eslint-disable-line
+  //     crop_id: 1, // eslint-disable-line
+  //     machine_id: 1 // eslint-disable-line
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "灌区C",
+  //     user_id: 0, // eslint-disable-line
+  //     create_time: 0, // eslint-disable-line
+  //     crop_id: 1, // eslint-disable-line
+  //     machine_id: 1 // eslint-disable-line
+  //   }
+  // ];
 
   private defaultGroupInfo = {
     group: {

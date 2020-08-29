@@ -120,7 +120,7 @@ const insert = (
   tableName: tables,
   data: { [key: string]: any }
 ): Promise<any> => {
-  !!data.id && delete data.id // 删除 主键id
+  'id' in data && delete data.id // 删除 主键id
 
   const keys = Object.keys(data)
   const values = Object.values(data)
@@ -129,9 +129,46 @@ const insert = (
   )})`
   log.silly(sql)
   return new Promise((resolve, reject) => {
-    db.run(sql, values, (err: Error, row: any) => {
-      !err ? resolve(row) : reject(err)
-    })
+    function call (err: Error, row: any) {
+      !err ? resolve(this.lastID) : reject(err)
+    }
+    if (data) {
+      !data && reject(new Error('传入参数为空'))
+      db.run(sql, values, call)
+    } else {
+      reject(new Error('传入参数为空'))
+    }
+  })
+}
+
+/**
+ * 向表中插入多条数据，默认主键为 id， 内容必须是整条记录的所有字段
+ * @param tableName 表名称
+ * @param data 插入数据
+ */
+const inserts = (
+  tableName: tables,
+  data: { [key: string]: any }[]
+): Promise<any> => {
+  data.forEach((item: { [key: string]: any }) => {
+    'id' in item && delete item.id // 删除 主键id
+  })
+
+  const values = Object.values(data).map((value: any) => {
+    return Object.values(value)
+  })
+  const sql = `insert into ${tableName} values (${values.map((value: any) => {
+    return `(${value})`
+  })})`
+  log.silly(sql)
+  return new Promise((resolve, reject) => {
+    if (data) {
+      db.run(sql, (err: Error, row: any) => {
+        !err ? resolve(row) : reject(err)
+      })
+    } else {
+      reject(new Error('传入参数为空'))
+    }
   })
 }
 
@@ -148,7 +185,7 @@ const update = (
   condition: { [key: string]: any },
   op = 'and'
 ): Promise<any> => {
-  !!data.id && delete data.id // 删除 主键id
+  'id' in data && delete data.id // 删除 主键id
 
   const set = obj2str(data, ',')
   const flag = obj2str(condition, op)
@@ -156,9 +193,13 @@ const update = (
   log.silly(sql)
   const values = Object.values(data).concat(Object.values(condition))
   return new Promise((resolve, reject) => {
-    db.run(sql, values, (err: Error, row: any) => {
-      !err ? resolve(row) : reject(err)
-    })
+    if (data) {
+      db.run(sql, values, (err: Error, row: any) => {
+        !err ? resolve(row) : reject(err)
+      })
+    } else {
+      reject(new Error('传入参数为空'))
+    }
   })
 }
 
@@ -171,29 +212,32 @@ const update = (
 const del = (tableName: tables, obj?: { [key: string]: any }, op = 'and') => {
   if (obj) {
     const values = Object.values(obj)
-    const flag = obj2str(obj, op)
+    const flag = obj2str2(obj, op)
     const sql = 'delete from ' + tableName + ' where ' + flag
     log.silly(sql)
     return new Promise((resolve, reject) => {
-      db.all(sql, values, (err: Error, row: any) => {
-        !err ? resolve(row) : reject(err)
-      })
+      function call (err: Error, row: any) {
+        !err ? resolve(this.changes) : reject(err)
+      }
+      db.all(sql, call)
     })
   } else {
     // const sql = "delete from sqlite_sequence where name ='" + tableName + "'";
     const sql =
       "update sqlite_sequence set seq = 0 where name= '" + tableName + "'"
     log.silly(sql)
+    db.run(sql)
     return new Promise((resolve, reject) => {
+      function call (err: Error, row: any) {
+        !err ? resolve(this.changes) : reject(err)
+      }
       db.run('delete from ' + tableName, (err: Error) => {
         if (!err) {
-          db.run(sql, (err: Error, row: any) => {
-            !err ? resolve(row) : reject(err)
-          })
+          db.run(sql, call)
         }
       })
     })
   }
 }
 
-export { db, get, all, insert, update, del, tables }
+export { db, get, all, insert, inserts, update, del, tables }

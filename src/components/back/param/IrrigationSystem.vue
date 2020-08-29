@@ -171,7 +171,11 @@ import {
   PropSync
 } from 'vue-property-decorator'
 
-import { Group } from '@/app/main/database/model'
+import { DeviceInterface } from '@/components/back/setting/NewDevice.vue'
+import { GroupInterface } from '@/views/back/Group.vue'
+import { Group, Fer } from '@/app/main/database/model'
+import { namespace } from 'vuex-class'
+const databaseModule = namespace('database')
 
 export interface TurnGroupContent {
   group: Group; // 灌区名称
@@ -188,23 +192,12 @@ export interface TurnGroupContent {
 
 @Component
 export default class IrrigationSystem extends Vue {
+  @databaseModule.State('Fer') ferType!: Fer[];
+
   @Prop({ type: Object, required: true }) private param!: TurnGroupContent;
   private group!: TurnGroupContent;
-  /**
-   * default: [{id:1,name:"氮肥"},{id:2,name:"磷肥"},{id:3,name:"钾肥"},{id:4,name:"碳肥"}]
-   */
-  @Prop({
-    type: Array,
-    default: () => [
-      { id: 1, name: '氮肥' },
-      { id: 2, name: '磷肥' },
-      { id: 3, name: '钾肥' },
-      { id: 4, name: '碳肥' }
-    ]
-  })
-  private ferType!: any;
 
-  @Prop({ type: Array, required: true }) private GroupList!: Group[];
+  @Prop({ type: Array, required: true }) private GroupList!: GroupInterface[];
 
   // 编辑状态，true 编辑  false 显示
   @Prop({ type: Boolean, default: false }) private flag!: boolean;
