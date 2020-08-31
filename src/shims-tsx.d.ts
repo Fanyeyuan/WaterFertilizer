@@ -13,5 +13,6 @@ declare global {
   interface Window {
     log: any;
     ipc: any;
+    lodash: any;
   }
 }

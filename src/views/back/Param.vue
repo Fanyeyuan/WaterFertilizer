@@ -1,7 +1,8 @@
 <template>
-  <div class="list">
+  <div class="list" v-if="flag">
     <el-scrollbar class="scroolbar" :wrapStyle="{ margin: 0 }" :native="false">
-      <el-collapse :value="activeCollapse" accordion>
+      <el-collapse v-model="activeCollapse" accordion>
+        <!-- 库中 轮灌参数显示 -->
         <el-collapse-item
           v-for="(param, index) in params"
           :key="index"
@@ -41,10 +42,14 @@
             :params="param"
             :group-list="GroupList"
             :default-group-info="defaultGroupInfo"
-            @param-list-group-add="onParamListAdd"
+            @param-list-start-time-change="onOriginStartTimeChange"
+            @param-list-group-add="onOriginParamListAdd"
+            @param-list-group-change="onOriginGroupListChange"
+            @param-list-group-delete="onOriginGroupListdelete"
           ></param-list>
         </el-collapse-item>
 
+        <!-- 新增 轮灌参数 -->
         <el-collapse-item v-if="!!addParam" :name="params.length.toString()">
           <template slot="title">
             <div class="listTitle">
@@ -70,14 +75,14 @@
                   size="small"
                   icon="el-icon-check"
                   circle
-                  @click.stop="onCheckClick"
+                  @click.stop="onAddRecordCheckClick"
                 ></el-button>
                 <el-button
                   type="danger"
                   size="small"
                   icon="el-icon-close"
                   circle
-                  @click.stop="onCancelClick"
+                  @click.stop="onAddRecordCancelClick"
                 ></el-button>
               </span>
             </div>
@@ -111,14 +116,20 @@
 import { Component, Vue, Emit, Watch } from 'vue-property-decorator'
 import moment from 'moment'
 
-import { Collapse, CollapseItem, Message } from 'element-ui'
+import { Collapse, CollapseItem, Message, MessageBox } from 'element-ui'
 
+import IrrigationSystem, {
+  TurnGroupContent
+} from '@/components/back/param/IrrigationSystem.vue'
 import ParamList, {
   TurnRecordInterface
 } from '@/components/back/param/ParamList.vue'
 import NewParam from '@/components/back/param/NewParam.vue'
 
+import * as Bus from '@/utils/bus'
+
 import {
+  Fer,
   Group,
   TurnRecord,
   TurnFer,
@@ -146,7 +157,17 @@ export default class Param extends Vue {
   @databaseModule.State('Group') private GroupList: Group[];
   @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
   @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
+  @databaseModule.State('Fer') ferType!: Fer[];
   @databaseModule.State('TurnRecord') private TurnRecord: TurnRecord[];
+  @databaseModule.Action('saveTurnContent') saveTurnContent!: (
+    param: any[]
+  ) => void;
+
+  @databaseModule.Action('saveTurnFer') saveTurnFer!: (param: any[]) => void;
+  @databaseModule.Action('saveTurnRecord') saveTurnRecord!: (
+    param: any[]
+  ) => void;
+
   @otherModule.State('TurnInfo') private TurnInfo: TurnRecordInterface[];
   @otherModule.Action('saveTurnInfo') private saveTurnInfo!: (
     param: any[]
@@ -157,7 +178,6 @@ export default class Param extends Vue {
   private defaultGroupInfo = {
     group: {
       id: 1,
-      name: '灌区A',
       user_id: 0, // eslint-disable-line
       create_time: 0, // eslint-disable-line
       crop_id: 1, // eslint-disable-line
@@ -169,24 +189,40 @@ export default class Param extends Vue {
     fer: [
       {
         id: 1,
+        ferType: {
+          id: 1,
+          name: '氮肥'
+        },
         ferRatio: 1,
         ferWeight: 300,
         ferTime: 30
       },
       {
         id: 2,
+        ferType: {
+          id: 1,
+          name: '氮肥'
+        },
         ferRatio: 1,
         ferWeight: 300,
         ferTime: 30
       },
       {
         id: 3,
+        ferType: {
+          id: 1,
+          name: '氮肥'
+        },
         ferRatio: 1,
         ferWeight: 300,
         ferTime: 30
       },
       {
         id: 4,
+        ferType: {
+          id: 1,
+          name: '氮肥'
+        },
         ferRatio: 1,
         ferWeight: 300,
         ferTime: 30
@@ -196,7 +232,7 @@ export default class Param extends Vue {
 
   private addParam: any = null;
 
-  private activeCollapse = '0';
+  private activeCollapse = 0;
 
   private getGroupName (param: any) {
     // console.log(param);
@@ -218,30 +254,240 @@ export default class Param extends Vue {
     }
   }
 
-  private onDeleteClick (index: number) {
+  private async onDeleteClick (index: number) {
+    const param = this.params[index]
+    // 删除轮灌记录
+    let result = await Bus.deleteTurnRecord(param.id)
+    console.log(result)
+
+    const ferId = []
+    const contentId = param.group.map((group: TurnGroupContent) => {
+      console.log(group)
+      const id = group.fer.forEach((fer: any) => {
+        ferId.push(fer.id)
+      })
+
+      return group.id
+    })
+
+    result = await Bus.deleteTurnContent(contentId)
+    console.log(result)
+    result = await Bus.deleteTurnFer(ferId)
+    console.log(result)
+
     this.params.splice(index, 1)
     this.addParam = null
   }
 
-  private onCheckClick () {
+  private async onAddRecordCheckClick () {
     console.log(this.addParam.group.length)
     if (this.addParam.group.length) {
       this.params.push(this.addParam)
+      const recordInfo = {
+        id: 1,
+        user_id: 1,
+        name: null,
+        create_time: new Date().getTime(),
+        start_time: this.addParam.startTime,
+        state: 0
+      }
+      const result = await Bus.createTurnRecord(recordInfo)
+      console.log(result)
+
+      const recordId = result.data
+      for (let j = 0; j < this.addParam.group.length; j++) {
+        const group = this.addParam.group[j]
+        let groupInfo: any = {
+          name: '',
+          turn_record_id: recordId,
+          group_id: group.group.id,
+          sequence: j,
+          delay: group.delay,
+          run_time: group.runTime,
+          irrigation_type: group.type
+        }
+        if (group.type !== 1) {
+          const ferId = []
+          const ferInfo = group.fer.map((fer: any) => {
+            return {
+              fer_id: fer.ferType.id,
+              fer_ratio: fer.ferRatio,
+              fer_weight: fer.ferWeight,
+              fer_time: fer.ferTime
+            }
+          })
+          for (let i = 0; i < ferInfo.length; i++) {
+            const result = await Bus.createTurnFer(ferInfo[i])
+            ferId.push(result.data)
+            console.log(result)
+          }
+          groupInfo = {
+            name: '',
+            turn_record_id: recordId,
+            group_id: group.group.id,
+            sequence: j,
+            delay: group.delay,
+            run_time: group.runTime,
+            irrigation_type: group.type,
+            fer1: ferId[0],
+            fer2: ferId[1],
+            fer3: ferId[2],
+            fer4: ferId[3]
+          }
+        }
+
+        const result = await Bus.createTurnContent(groupInfo)
+        console.log(result)
+        // if (result.state === 0) {
+        //   Message.success("灌区新增成功");
+        //   this.updateTurnInfoState();
+        // }
+      }
+
+      console.log('lunguan')
+      Message.success('轮灌记录新增成功')
+      console.log('lunguan')
+      this.params.push(this.addParam)
+      console.log('lunguan')
+      this.updateTurnInfoState()
+      console.log('lunguan')
       this.addParam = null
     } else {
       Message.warning('请添加一条灌区信息')
     }
   }
 
-  private onCancelClick () {
-    this.addParam = null
+  private onAddRecordCancelClick () {
+    MessageBox.confirm('确定取消灌溉记录吗？', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+      .then(() => {
+        this.addParam = null
+      })
+      .catch(() => {
+        Message.info('已取消')
+      })
   }
 
-  private onParamListAdd () {
-    console.log(this.addParam)
+  private async onOriginStartTimeChange (param: TurnRecordInterface) {
+    const recordInfo = {
+      id: param.id,
+      start_time: param.startTime
+    }
+    const result = await Bus.updateTurnRecord(recordInfo)
+
+    if (result.state === 0) {
+      Message.success('灌区开始时间修改成功')
+      this.updateTurnInfoState()
+    }
   }
 
-  getScheduledTime (param: any) {
+  private async onOriginParamListAdd (
+    turn: TurnRecordInterface,
+    param: TurnGroupContent
+  ) {
+    let groupInfo: any = {
+      name: '',
+      turn_record_id: turn.id,
+      group_id: param.group.id,
+      sequence: turn.group.length,
+      delay: param.delay,
+      run_time: param.runTime,
+      irrigation_type: param.type
+    }
+    if (param.type !== 1) {
+      const ferId = []
+      const ferInfo = param.fer.map((fer: any) => {
+        return {
+          fer_id: fer.ferType.id,
+          fer_ratio: fer.ferRatio,
+          fer_weight: fer.ferWeight,
+          fer_time: fer.ferTime
+        }
+      })
+      for (let i = 0; i < ferInfo.length; i++) {
+        const result = await Bus.createTurnFer(ferInfo[i])
+        ferId.push(result.data)
+        console.log(result)
+      }
+      groupInfo = {
+        name: '',
+        turn_record_id: turn.id,
+        group_id: param.group.id,
+        sequence: turn.group.length,
+        delay: param.delay,
+        run_time: param.runTime,
+        irrigation_type: param.type,
+        fer1: ferId[0],
+        fer2: ferId[1],
+        fer3: ferId[2],
+        fer4: ferId[3]
+      }
+    }
+    const result = await Bus.createTurnContent(groupInfo)
+
+    if (result.state === 0) {
+      Message.success('灌区新增成功')
+      this.updateTurnInfoState()
+    }
+
+    console.log(param, groupInfo, result)
+  }
+
+  private onOriginGroupListdelete (group: TurnGroupContent, index: number) {
+    console.log(index, group)
+    const ferId = group.fer.map((fer: any) => fer.id)
+    Promise.all([
+      Bus.deleteTurnContent(group.id),
+      Bus.deleteTurnFer(ferId)
+    ]).then((res: any) => {
+      if (res[0].state === 0 && res[0].state === 0) {
+        Message.success('删除该分区参数成功')
+        this.updateTurnInfoState()
+      }
+    })
+  }
+
+  private async onOriginGroupListChange (param: TurnGroupContent) {
+    const ferInfo = param.fer.map((fer: any) => {
+      return {
+        id: fer.id,
+        fer_id: fer.ferType.id,
+        fer_ratio: fer.ferRatio,
+        fer_weight: fer.ferWeight,
+        fer_time: fer.ferTime
+      }
+    })
+    for (let i = 0; i < ferInfo.length; i++) {
+      console.log(param)
+      const result = await Bus.updateTurnFer(ferInfo[i])
+      console.log(result)
+    }
+    const groupInfo = {
+      id: param.id,
+      name: '',
+      turn_record_id: param.recordId,
+      group_id: param.group.id,
+      sequence: param.group.length,
+      delay: param.delay,
+      run_time: param.runTime,
+      irrigation_type: param.type,
+      fer1: param.fer1,
+      fer2: param.fer2,
+      fer3: param.fer3,
+      fer4: param.fer4
+    }
+    const result = await Bus.updateTurnContent(groupInfo)
+
+    if (result.state === 0) {
+      Message.success('灌区修改成功')
+      this.updateTurnInfoState()
+    }
+  }
+
+  private getScheduledTime (param: any) {
     let time = param.startTime
     param.group.forEach((item: any) => {
       time += (item.runTime + item.delay) * 6000
@@ -250,11 +496,47 @@ export default class Param extends Vue {
     return time
   }
 
+  private async updateTurnInfoState () {
+    Promise.all([
+      Bus.getTurnRecord(),
+      Bus.getTurnFer(),
+      Bus.getTurnContent()
+    ]).then((res: any[]) => {
+      console.log(res)
+      if (res[0].state === 0) {
+        this.saveTurnRecord(res[0].data)
+      } else {
+        Message.warning(res[0].type + '-' + res[0].msg)
+      }
+      if (res[1].state === 0) {
+        this.saveTurnFer(res[1].data)
+      } else {
+        Message.warning(res[1].type + '-' + res[1].msg)
+      }
+      if (res[2].state === 0) {
+        this.saveTurnContent(res[2].data)
+      } else {
+        Message.warning(res[2].type + '-' + res[2].msg)
+      }
+    })
+  }
+
   private get getParams () {
     const params = this.TurnRecord.map((recode: TurnRecord) => {
       const content = this.TurnContent.filter(
         (content: TurnContent) => recode.id === content.turn_record_id
       )
+      const Fer = this.TurnFer.map((fer: TurnFer) => {
+        return {
+          id: fer.id,
+          ferType: this.ferType.find(
+            (ferType: Fer) => ferType.id === fer.fer_id
+          ),
+          ferRatio: fer.fer_ratio,
+          ferWeight: fer.fer_weight,
+          ferTime: fer.fer_time
+        }
+      })
 
       return {
         id: recode.id,
@@ -265,13 +547,16 @@ export default class Param extends Vue {
         state: recode.state,
         group: content.map((content: TurnContent) => {
           return {
+            id: content.id,
+            recordId: content.turn_record_id,
             group: this.GroupList.find(
               (group: Group) => group.id === content.group_id
             ),
             delay: content.delay,
             runTime: content.run_time,
+            sequence: content.sequence,
             type: content.irrigation_type,
-            fer: this.TurnFer.filter(
+            fer: Fer.filter(
               (fer: TurnFer) =>
                 fer.id === content.fer1 ||
                 fer.id === content.fer2 ||
@@ -286,11 +571,20 @@ export default class Param extends Vue {
     return params
   }
 
+  // 强制刷新使用
+  private flag = true;
   @Watch('getParams', { immediate: true, deep: true })
   private saveTurnInfos (value: any) {
-    this.saveTurnInfo(value)
-    this.params = JSON.parse(JSON.stringify(value))
-    console.log(value)
+    this.flag = false
+    const activeCollapse = this.activeCollapse
+    this.$nextTick(() => {
+      this.saveTurnInfo(value)
+      this.params = JSON.parse(JSON.stringify(value))
+      this.$forceUpdate()
+      console.log(value)
+      this.flag = true
+      this.activeCollapse = activeCollapse
+    })
   }
 }
 </script>
@@ -298,7 +592,7 @@ export default class Param extends Vue {
 <style lang="scss" scoped>
 .list {
   .scroolbar {
-    height: 5rem;
+    height: 6.5rem;
     .listTitle {
       width: 100%;
       // height: 80px;

@@ -66,7 +66,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getReals', // 从数据库获取最新数据
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getReals',
         data: null,
@@ -192,7 +192,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getDeivce',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getDeivce',
         data: null,
@@ -280,7 +280,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'deleteDeivce',
-    fun: async (args: { fac_id: number | number[] | undefined }) => {
+    fun: async (args: { fac_id: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'deleteDeivce',
         data: null,
@@ -341,7 +341,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getElement',
-    fun: async (args: { indexs: number | number[] | undefined }) => {
+    fun: async (args: { indexs?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getElement',
         data: null,
@@ -373,7 +373,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getFacType',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getFacType',
         data: null,
@@ -405,7 +405,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getCrop',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getCrop',
         data: null,
@@ -437,7 +437,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getFer',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getFer',
         data: null,
@@ -469,7 +469,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getGroup',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getGroup',
         data: null,
@@ -567,7 +567,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'deleteGroup',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'deleteGroup',
         data: null,
@@ -597,7 +597,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getGroupDevice',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getGroupDevice',
         data: null,
@@ -679,7 +679,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'deleteGroupDevice',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'deleteGroupDevice',
         data: null,
@@ -709,7 +709,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getControlLog',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getControlLog',
         data: null,
@@ -741,7 +741,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getRelayType',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getRelayType',
         data: null,
@@ -773,7 +773,7 @@ const EventProcess: EventProcessInterface[] = [
   },
   {
     event: 'getTurnRecord',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getTurnRecord',
         data: null,
@@ -804,8 +804,89 @@ const EventProcess: EventProcessInterface[] = [
     }
   },
   {
+    event: 'createTurnRecord', // 新建一个设备信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createTurnRecord',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.turnRecord, args); // eslint-disable-line
+        result.data = test
+        result.msg = '轮灌记录信息新建成功'
+      } catch (err) {
+        log.warn('API-createRecord', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateTurnRecord', // 更新一个记录信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateTurnRecord',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.turnRecord, { id: args.id })
+        if (device) {
+          const test = await Db.update(Db.tables.turnRecord, args, {
+            id: args.id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '轮灌记录信息修改成功'
+        } else {
+          result.state = 96
+          result.msg = '轮灌记录信息不存在'
+        }
+      } catch (err) {
+        log.warn('API-updateRecord', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteTurnRecord',
+    fun: async (args: { id: number | number[] }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteTurnRecord',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test
+        if (typeof args.id === 'undefined') {
+          test = await Db.del(Db.tables.turnRecord); // eslint-disable-line
+        } else {
+          test = await Db.del(Db.tables.turnRecord, { id: args.id }); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '轮灌记录删除成功'
+        } else {
+          result.data = test
+          result.msg = '当前轮灌记录未建立'
+        }
+      } catch (err) {
+        log.warn('API-deleteTurnRecord', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
     event: 'getTurnFer',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getTurnFer',
         data: null,
@@ -836,8 +917,89 @@ const EventProcess: EventProcessInterface[] = [
     }
   },
   {
+    event: 'createTurnFer', // 新建一个设备信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createTurnFer',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.turnFer, args); // eslint-disable-line
+        result.data = test
+        result.msg = '轮灌通道信息新建成功'
+      } catch (err) {
+        log.warn('API-createTurnFer', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateTurnFer', // 更新一个灌区信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateTurnFer',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.turnFer, { id: args.id })
+        if (device) {
+          const test = await Db.update(Db.tables.turnFer, args, {
+            id: args.id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '轮灌通道信息修改成功'
+        } else {
+          result.state = 96
+          result.msg = '轮灌通道信息不存在'
+        }
+      } catch (err) {
+        log.warn('API-updateFer', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteTurnFer',
+    fun: async (args: { id: number | number[] }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteTurnFer',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test
+        if (typeof args.id === 'undefined') {
+          test = await Db.del(Db.tables.turnFer); // eslint-disable-line
+        } else {
+          test = await Db.del(Db.tables.turnFer, { id: args.id }); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '轮灌肥料删除成功'
+        } else {
+          result.data = test
+          result.msg = '当前轮灌肥料未建立'
+        }
+      } catch (err) {
+        log.warn('API-deleteTurnFer', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
     event: 'getTurnContent',
-    fun: async (args: { id: number | number[] | undefined }) => {
+    fun: async (args: { id?: number | number[] }) => {
       const result: ProtocolResponedInterface = {
         type: 'getTurnContent',
         data: null,
@@ -864,7 +1026,88 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前农事记录不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getTurnContent', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'createTurnContent', // 新建一个设备信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'createTurnContent',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test = await Db.insert(Db.tables.turnContent, args); // eslint-disable-line
+        result.data = test
+        result.msg = '轮灌灌区信息新建成功'
+      } catch (err) {
+        log.warn('API-createContent', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'updateTurnContent', // 更新一个灌区信息
+    fun: async (args: { id: number; [key: string]: any }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'updateTurnContent',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        const device = await Db.get(Db.tables.turnContent, { id: args.id })
+        if (device) {
+          const test = await Db.update(Db.tables.turnContent, args, {
+            id: args.id
+          }); // eslint-disable-line
+          result.data = test
+          result.msg = '轮灌灌区信息修改成功'
+        } else {
+          result.state = 96
+          result.msg = '轮灌灌区信息不存在'
+        }
+      } catch (err) {
+        log.warn('API-updateContent', args, err.message)
+        result.state = 98
+        result.msg = '数据库已断开'
+      }
+      return result
+    }
+  },
+  {
+    event: 'deleteTurnContent',
+    fun: async (args: { id: number | number[] }) => {
+      const result: ProtocolResponedInterface = {
+        type: 'deleteTurnContent',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      try {
+        let test
+        if (typeof args.id === 'undefined') {
+          test = await Db.del(Db.tables.turnContent); // eslint-disable-line
+        } else {
+          test = await Db.del(Db.tables.turnContent, { id: args.id }); // eslint-disable-line
+        }
+        if (test) {
+          result.data = test
+          result.msg = '轮灌内容删除成功'
+        } else {
+          result.data = test
+          result.msg = '当前轮灌内容未建立'
+        }
+      } catch (err) {
+        log.warn('API-deleteTurnContent', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }

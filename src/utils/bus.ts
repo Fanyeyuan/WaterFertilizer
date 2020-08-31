@@ -26,8 +26,17 @@ enum BusEvents {
   getControlLog = 'getControlLog', // 获取指定设备的控制日志
   getRelayType = 'getRelayType', // 获取继电器类型
   getTurnRecord = 'getTurnRecord', // 获取轮灌信息
-  getTurnFer = 'getTurnFer', // 获取轮灌信息内容
-  getTurnContent = 'getTurnContent' // 获取轮灌信息内容
+  createTurnRecord = 'createTurnRecord', // 获取轮灌信息
+  updateTurnRecord = 'updateTurnRecord', // 获取轮灌信息
+  deleteTurnRecord = 'deleteTurnRecord', // 获取轮灌信息
+  getTurnFer = 'getTurnFer', // 获取轮灌肥料信息内容
+  createTurnFer = 'createTurnFer', // 获取轮灌肥料信息内容
+  updateTurnFer = 'updateTurnFer', // 获取轮灌肥料信息内容
+  deleteTurnFer = 'deleteTurnFer', // 删除轮灌肥料信息内容
+  getTurnContent = 'getTurnContent', // 获取轮灌信息内容
+  createTurnContent = 'createTurnContent', // 获取轮灌信息内容
+  updateTurnContent = 'updateTurnContent', // 获取轮灌信息内容
+  deleteTurnContent = 'deleteTurnContent' // 删除轮灌信息内容
 }
 
 const bus = new Vue()
@@ -156,11 +165,38 @@ export function getRelayType (id?: number[] | number) {
 export function getTurnRecord (id?: number[] | number) {
   return event(BusEvents.getTurnRecord, { id })
 }
+export function createTurnRecord (device: object) {
+  return event(BusEvents.createTurnRecord, device)
+}
+export function updateTurnRecord (device: object) {
+  return event(BusEvents.updateTurnRecord, device)
+}
+export function deleteTurnRecord (id?: number[] | number) {
+  return event(BusEvents.deleteTurnRecord, { id })
+}
 
 export function getTurnFer (id?: number[] | number) {
   return event(BusEvents.getTurnFer, { id })
 }
+export function createTurnFer (device: object) {
+  return event(BusEvents.createTurnFer, device)
+}
+export function updateTurnFer (device: object) {
+  return event(BusEvents.updateTurnFer, device)
+}
+export function deleteTurnFer (id?: number[] | number) {
+  return event(BusEvents.deleteTurnFer, { id })
+}
 
 export function getTurnContent (id?: number[] | number) {
   return event(BusEvents.getTurnContent, { id })
+}
+export function createTurnContent (device: object) {
+  return event(BusEvents.createTurnContent, device)
+}
+export function updateTurnContent (device: object) {
+  return event(BusEvents.updateTurnContent, device)
+}
+export function deleteTurnContent (id?: number[] | number) {
+  return event(BusEvents.deleteTurnContent, { id })
 }

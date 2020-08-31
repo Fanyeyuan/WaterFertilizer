@@ -171,6 +171,7 @@ export default class ParamList extends Vue {
   private onCheckClick () {
     this.editFlag = false
     // console.log(this.param);
+    return this.param
   }
 
   private onAddClick () {
@@ -182,6 +183,7 @@ export default class ParamList extends Vue {
 
   @Emit('param-list-group-change')
   private onEditGroupClick (param: TurnGroupContent) {
+    console.log(param)
     const index = this.param.group.findIndex(
       item => item.group.id === param.group.id
     )
@@ -190,13 +192,16 @@ export default class ParamList extends Vue {
 
   @Emit('param-list-group-delete')
   private onDeleteGroupClick (index: number) {
-    this.param.group.splice(index, 1)
+    const group = this.param.group.splice(index, 1)
+    console.log(group, this.param.group)
+    return group[0]
   }
 
   @Emit('param-list-group-add')
   private onAddGroupClick (param: TurnGroupContent) {
     this.param.group.push(param)
     this.addGroup = null
+    return this.param
   }
 
   private onCancelGroupClick () {
@@ -245,7 +250,7 @@ export default class ParamList extends Vue {
     .add {
       position: absolute;
       right: 0;
-      top: 0;
+      top: 40%;
       display: none;
     }
 

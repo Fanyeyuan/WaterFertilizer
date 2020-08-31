@@ -1,1 +1,1 @@
-﻿select * from xph_device where fac_id in (15112501)
+﻿update sqlite_sequence set seq = 0 where name= 'xph_group_device'

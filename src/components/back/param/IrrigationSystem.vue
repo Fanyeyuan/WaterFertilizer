@@ -76,7 +76,8 @@
       <div class="right">
         <el-select
           size="small"
-          v-model="group.fer[channel].fer_id"
+          v-model="group.fer[channel].ferType"
+          value-key="id"
           placeholder="请选择"
           :disabled="!editFlag"
         >
@@ -84,7 +85,7 @@
             v-for="fer in ferType"
             :key="fer.id"
             :label="fer.name"
-            :value="fer.id"
+            :value="fer"
           >
           </el-option>
         </el-select>
@@ -178,12 +179,16 @@ import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')
 
 export interface TurnGroupContent {
+  id: number; // 记录编号
+  recordId: number; // 轮灌记录编号
   group: Group; // 灌区名称
   delay: number; // 延迟时间 分钟
   runTime: number; // 运行时间 分钟
+  sequence: number; // 执行顺序
   type: number; // 施肥类型 1 仅灌溉 2 定时施肥 3 定量施肥 4 定比施肥
   fer: {
     id: number; // 肥料对用编号
+    ferType: Fer;
     ferRatio: number; // 肥料比例
     ferWeight: number; // 施肥量
     ferTime: number; // 施肥时间
@@ -230,6 +235,7 @@ export default class IrrigationSystem extends Vue {
   @Watch('param', { immediate: true, deep: true })
   setGroups (value: any) {
     this.group = value
+    console.log(value)
   }
 
   @Watch('flag', { immediate: true })
