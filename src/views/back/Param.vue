@@ -18,9 +18,7 @@
                 >开始时间:<em>{{ param.startTime | dateFormat }}</em></span
               >
               <span
-                >预计结束时间:<em>{{
-                  getScheduledTime(param) | dateFormat
-                }}</em></span
+                >预计结束时间:<em>{{ param.endTime | dateFormat }}</em></span
               >
               <span
                 >灌区:<em :title="getGroupName(param)">{{
@@ -173,16 +171,10 @@ export default class Param extends Vue {
     param: any[]
   ) => void;
 
-  private params: TurnRecordInterface[];
+  private params: TurnRecordInterface[] = [];
 
   private defaultGroupInfo = {
-    group: {
-      id: 1,
-      user_id: 0, // eslint-disable-line
-      create_time: 0, // eslint-disable-line
-      crop_id: 1, // eslint-disable-line
-      machine_id: 1 // eslint-disable-line
-    },
+    group: undefined,
     delay: 30,
     runTime: 60,
     type: 2,
@@ -232,7 +224,7 @@ export default class Param extends Vue {
 
   private addParam: any = null;
 
-  private activeCollapse = 0;
+  private activeCollapse = '0';
 
   private getGroupName (param: any) {
     // console.log(param);
@@ -241,6 +233,7 @@ export default class Param extends Vue {
   }
 
   private onAddClick () {
+    console.log(this.activeCollapse, this.params.length)
     this.activeCollapse = this.params.length.toString()
     // console.log("click", this.activeCollapse);
     this.addParam = {
@@ -277,6 +270,7 @@ export default class Param extends Vue {
 
     this.params.splice(index, 1)
     this.addParam = null
+    this.updateTurnInfoState()
   }
 
   private async onAddRecordCheckClick () {
@@ -474,10 +468,10 @@ export default class Param extends Vue {
       delay: param.delay,
       run_time: param.runTime,
       irrigation_type: param.type,
-      fer1: param.fer1,
-      fer2: param.fer2,
-      fer3: param.fer3,
-      fer4: param.fer4
+      fer1: param.fer[0].id,
+      fer2: param.fer[1].id,
+      fer3: param.fer[2].id,
+      fer4: param.fer[3].id
     }
     const result = await Bus.updateTurnContent(groupInfo)
 
@@ -487,7 +481,7 @@ export default class Param extends Vue {
     }
   }
 
-  private getScheduledTime (param: any) {
+  private getScheduledTime (param: TurnRecordInterface) {
     let time = param.startTime
     param.group.forEach((item: any) => {
       time += (item.runTime + item.delay) * 6000
@@ -496,7 +490,7 @@ export default class Param extends Vue {
     return time
   }
 
-  private async updateTurnInfoState () {
+  private updateTurnInfoState () {
     Promise.all([
       Bus.getTurnRecord(),
       Bus.getTurnFer(),
@@ -538,9 +532,10 @@ export default class Param extends Vue {
         }
       })
 
-      return {
+      const param: TurnRecordInterface = {
         id: recode.id,
         startTime: recode.start_time,
+        endTime: 0,
         userId: recode.user_id,
         name: recode.name,
         createTime: recode.create_time,
@@ -566,8 +561,9 @@ export default class Param extends Vue {
           }
         })
       }
+      param.endTime = this.getScheduledTime(param)
+      return param
     })
-    console.log(params)
     return params
   }
 
@@ -575,14 +571,14 @@ export default class Param extends Vue {
   private flag = true;
   @Watch('getParams', { immediate: true, deep: true })
   private saveTurnInfos (value: any) {
-    this.flag = false
+    // this.flag = false;
     const activeCollapse = this.activeCollapse
     this.$nextTick(() => {
       this.saveTurnInfo(value)
       this.params = JSON.parse(JSON.stringify(value))
       this.$forceUpdate()
       console.log(value)
-      this.flag = true
+      // this.flag = true;
       this.activeCollapse = activeCollapse
     })
   }

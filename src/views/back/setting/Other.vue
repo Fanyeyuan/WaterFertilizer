@@ -78,6 +78,7 @@ import {
   Input
 } from 'element-ui'
 
+import { lodash, LodashKeys } from '@/utils/lodash'
 import { Device } from '@/app/main/database/model'
 import { namespace } from 'vuex-class'
 Vue.use(Select)
@@ -106,19 +107,19 @@ export default class Other extends Vue {
   };
 
   private save (key: string, value: any) {
-    window.lodash.set(key, value)
+    lodash.set(key, value)
   }
 
   private onSolidFacIdChange () {
-    this.save('solid-fac-id', this.solidFacId)
+    this.save(LodashKeys.SolidFacId, this.solidFacId)
   }
 
   private onWeatherFacIdChange () {
-    this.save('weather-fac-id', this.weatherFacId)
+    this.save(LodashKeys.WeatherStationFacId, this.weatherFacId)
   }
 
   private onWeatherAkChange () {
-    this.save('weather-info', this.weatherInfo)
+    this.save(LodashKeys.WeatherInfo, this.weatherInfo)
   }
 
   private get weatherInfoLocation () {
@@ -137,7 +138,7 @@ export default class Other extends Vue {
       this.weatherInfo.location.longitude = Number(location[0])
       this.weatherInfo.location.latitude = Number(location[1])
     }
-    this.save('map-info', this.mapInfo)
+    this.save(LodashKeys.MapInfo, this.mapInfo)
   }
 
   private get mapInfoLocation () {

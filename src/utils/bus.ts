@@ -84,13 +84,8 @@ export function setRelays (
   return event(BusEvents.setRelays, { id, start, num, state })
 }
 
-export function setRelay (
-  id: number,
-  start: number,
-  num: number,
-  state: number
-) {
-  return event(BusEvents.setRelay, { id, start, num, state })
+export function setRelay (id: number, start: number, state: number) {
+  return event(BusEvents.setRelay, { id, start, state })
 }
 
 export function getDevice (id?: number[] | number) {

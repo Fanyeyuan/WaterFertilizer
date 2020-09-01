@@ -540,6 +540,57 @@ export default class Curve extends Vue {
     }
   ];
 
+  private data = [
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: '℃',
+      eValue: '34.4',
+      eKey: 'e1',
+      eName: '土壤温度',
+      eNum: '106'
+    },
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: '%RH',
+      eValue: '12.8',
+      eKey: 'e2',
+      eName: '土壤湿度',
+      eNum: '107'
+    },
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: '℃',
+      eValue: '39.1',
+      eKey: 'e3',
+      eName: '大气温度',
+      eNum: '101'
+    },
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: '%RH',
+      eValue: '39.2',
+      eKey: 'e4',
+      eName: '大气湿度',
+      eNum: '102'
+    },
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: 'Lux',
+      eValue: '31010',
+      eKey: 'e5',
+      eName: '照度',
+      eNum: '112'
+    },
+    {
+      datetime: '2020-08-19 09:46:59',
+      eUnit: 'PPM',
+      eValue: '468',
+      eKey: 'e6',
+      eName: '二氧化碳',
+      eNum: '120'
+    }
+  ];
+
   @Ref('curve') private readonly curve!: HTMLDivElement;
 
   private chart: any = null;
@@ -558,7 +609,10 @@ export default class Curve extends Vue {
         data: this.getLegend,
         orient: 'vertical',
         textStyle: {
-          color: '#ffffff'
+          color: '#ffffff',
+          fontSize: 10,
+          lineHeight: 10,
+          padding: 0
         }
       },
       grid: {
@@ -613,15 +667,17 @@ export default class Curve extends Vue {
   }
 
   private get getYData () {
-    const index = 0
     const data = []
     for (let i = 1; i <= 6; i++) {
       const tmp = this.history.map((item: any) => item['e' + i])
       data.push(tmp)
     }
     const result = data.map((item, index) => {
+      const unit = this.data.find(
+        (item: any) => item.eKey === 'e' + (index + 1)
+      )
       return {
-        name: 'e' + (index + 1),
+        name: unit.eName,
         type: 'line',
         // stack: "总量",
         smooth: true,
@@ -633,10 +689,7 @@ export default class Curve extends Vue {
   }
 
   private get getLegend () {
-    const result = []
-    for (let i = 1; i <= 16; i++) {
-      this.history[0]['e' + i] === 32767 || result.push('e' + i)
-    }
+    const result = this.data.map((item: any) => item.eName)
     console.log(result)
     return result
   }

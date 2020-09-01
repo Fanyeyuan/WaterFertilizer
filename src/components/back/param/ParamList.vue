@@ -16,9 +16,7 @@
           >
           </el-date-picker>
         </div>
-        <p class="endTime">
-          预计结束时间： {{ getScheduledTime | dateFormat }}
-        </p>
+        <p class="endTime">预计结束时间： {{ endTime | dateFormat }}</p>
         <div class="option">
           <div v-if="!editFlag">
             <el-button
@@ -114,6 +112,7 @@ Vue.use(DatePicker)
 export interface TurnRecordInterface {
   id: number;
   startTime: number;
+  endTime: number;
   userId: number;
   name: string;
   createTime: number;
@@ -147,13 +146,13 @@ export default class ParamList extends Vue {
 
   @Ref() private readonly scroll!: typeof Scrollbar;
 
-  private get getScheduledTime () {
-    let time = this.param.startTime
-    this.param.group.forEach((item: any) => {
-      time += (item.runTime + item.delay) * 6000
-    })
-    return time
-  }
+  // private get getScheduledTime() {
+  //   let time = this.param.startTime;
+  //   this.param.group.forEach((item: any) => {
+  //     time += (item.runTime + item.delay) * 6000;
+  //   });
+  //   return time;
+  // }
 
   private onEditClick () {
     this.editFlag = true

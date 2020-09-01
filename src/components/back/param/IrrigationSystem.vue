@@ -200,7 +200,7 @@ export default class IrrigationSystem extends Vue {
   @databaseModule.State('Fer') ferType!: Fer[];
 
   @Prop({ type: Object, required: true }) private param!: TurnGroupContent;
-  private group!: TurnGroupContent;
+  private group: TurnGroupContent = this.param;
 
   @Prop({ type: Array, required: true }) private GroupList!: GroupInterface[];
 
@@ -212,6 +212,7 @@ export default class IrrigationSystem extends Vue {
 
   private onEditClick () {
     this.editFlag = true
+    this.group = JSON.parse(JSON.stringify(this.param))
     // console.log(this.group);
   }
 
@@ -235,7 +236,6 @@ export default class IrrigationSystem extends Vue {
   @Watch('param', { immediate: true, deep: true })
   setGroups (value: any) {
     this.group = value
-    console.log(value)
   }
 
   @Watch('flag', { immediate: true })

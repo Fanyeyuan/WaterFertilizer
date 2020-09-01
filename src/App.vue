@@ -27,7 +27,11 @@ import {
   Relay,
   Group,
   GroupDevice,
-  Crop
+  Crop,
+  Fer,
+  TurnRecord,
+  TurnFer,
+  TurnContent
 } from '@/app/main/database/model'
 import { deviceInterface } from '@/components/back/setting/NewDevice.vue'
 import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
@@ -51,6 +55,7 @@ export default class App extends Vue {
   @databaseModule.Action('saveElement') saveElement!: (param: any[]) => void;
   @databaseModule.State('Element') Element!: Element[];
   @databaseModule.Action('saveFer') saveFer!: (param: any[]) => void;
+  @databaseModule.State('Fer') ferType!: Fer[];
   @databaseModule.Action('saveGroup') saveGroup!: (param: any[]) => void;
   @databaseModule.State('Group') Group!: Group[];
   @databaseModule.Action('saveGroupDevice') saveGroupDevice!: (
@@ -71,9 +76,16 @@ export default class App extends Vue {
     param: any[]
   ) => void;
 
+  @databaseModule.State('TurnRecord') private TurnRecord: TurnRecord[];
+  @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
+  @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
+
   @otherModule.State('DeviceList') DeviceList!: deviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
   @otherModule.Action('saveGroupList') saveGroupList!: (param: any[]) => void;
+  @otherModule.Action('saveTurnInfo') private saveTurnInfo!: (
+    param: any[]
+  ) => void;
 
   private getSensor (
     num: string,
@@ -201,7 +213,62 @@ export default class App extends Vue {
 
   @Watch('getGroupList')
   private saveGroupLists (group: any) {
+    // console.log(group);
     this.saveGroupList(group)
+  }
+
+  private get getParams () {
+    const params = this.TurnRecord.map((recode: TurnRecord) => {
+      const content = this.TurnContent.filter(
+        (content: TurnContent) => recode.id === content.turn_record_id
+      )
+      const Fer = this.TurnFer.map((fer: TurnFer) => {
+        return {
+          id: fer.id,
+          ferType: this.ferType.find(
+            (ferType: Fer) => ferType.id === fer.fer_id
+          ),
+          ferRatio: fer.fer_ratio,
+          ferWeight: fer.fer_weight,
+          ferTime: fer.fer_time
+        }
+      })
+
+      return {
+        id: recode.id,
+        startTime: recode.start_time,
+        userId: recode.user_id,
+        name: recode.name,
+        createTime: recode.create_time,
+        state: recode.state,
+        group: content.map((content: TurnContent) => {
+          return {
+            id: content.id,
+            recordId: content.turn_record_id,
+            group: this.Group.find(
+              (group: Group) => group.id === content.group_id
+            ),
+            delay: content.delay,
+            runTime: content.run_time,
+            sequence: content.sequence,
+            type: content.irrigation_type,
+            fer: Fer.filter(
+              (fer: TurnFer) =>
+                fer.id === content.fer1 ||
+                fer.id === content.fer2 ||
+                fer.id === content.fer3 ||
+                fer.id === content.fer4
+            )
+          }
+        })
+      }
+    })
+    return params
+  }
+
+  @Watch('getParams', { immediate: true, deep: true })
+  private saveTurnInfos (value: any) {
+    this.saveTurnInfo(value)
   }
 
   private mounted () {
