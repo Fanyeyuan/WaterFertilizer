@@ -40,15 +40,15 @@ const EventProcess: EventProcessInterface[] = [
             dat[`jk${index + 1}`] = val
           })
 
-          // const test = await Db.get(Db.tables.reals, { fac_id: args.id }); // eslint-disable-line
+          const test = await Db.get(Db.tables.reals, { fac_id: args.id }); // eslint-disable-line
           // console.log(!!test, test);
-          // if (!!test) {
-          //   console.log(args.id + "1");
-          await Db.update(Db.tables.reals, dat, { fac_id: args.id }); // eslint-disable-line
-          // } else {
-          //   console.log(args.id + "2");
-          //   await Db.insert(Db.tables.reals, dat);
-          // }
+          if (test) {
+            // console.log(args.id + "1");
+            await Db.update(Db.tables.reals, dat, { fac_id: args.id }); // eslint-disable-line
+          } else {
+            // console.log(args.id + "2");
+            await Db.insert(Db.tables.reals, dat)
+          }
           await Db.insert(Db.tables.history, dat)
         } catch (error) {
           log.warn('API-getReal', args, error.message)
@@ -101,7 +101,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备无实时数据'
         }
       } catch (error) {
-        log.warn('API-getReal', args, error.message)
+        log.warn('API-getReals', args, error.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -120,7 +120,7 @@ const EventProcess: EventProcessInterface[] = [
     }) => {
       const device = deviceList.get(args.id)
       let result: ProtocolResponedInterface = {
-        type: '',
+        type: 'setRelays',
         data: null,
         state: 0,
         msg: ''
@@ -138,12 +138,12 @@ const EventProcess: EventProcessInterface[] = [
             dat[`jk${args.num + index}+1`] = val
           })
         } catch (error) {
-          log.warn('API-setReals 失败', args, error.message)
+          log.warn('API-setRelays 失败', args, error.message)
           result.state = 99
           result.msg = '设备返回超时'
         }
       } else {
-        log.info('API-setReals 设备还未上线', args)
+        log.info('API-setRelays 设备还未上线', args)
         result.state = 100
         result.msg = '设备还未上线'
       }
@@ -162,7 +162,7 @@ const EventProcess: EventProcessInterface[] = [
     }) => {
       const device = deviceList.get(args.id)
       let result: ProtocolResponedInterface = {
-        type: '',
+        type: 'setRelay',
         data: null,
         state: 0,
         msg: ''
@@ -178,12 +178,40 @@ const EventProcess: EventProcessInterface[] = [
           dat[`jk${result.data.relay + 1}`] = result.data.state
           await Db.update(Db.tables.reals, dat, { fac_id: args.id }); // eslint-disable-line
         } catch (error) {
-          log.warn('API-setReal 失败', args, error.message)
+          log.warn('API-setRelay 失败', args, error.message)
           result.state = 99
           result.msg = '设备返回超时'
         }
       } else {
-        log.info('API-setReal 设备还未上线', args)
+        result.state = 100
+        result.msg = '设备还未上线'
+      }
+
+      result.ext = args
+      return result
+    }
+  },
+  {
+    event: 'setRadio',
+    fun: async (args: { id: number; fer: number[] }) => {
+      const device = deviceList.get(args.id)
+      let result: ProtocolResponedInterface = {
+        type: 'setRadio',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      if (device && device.sock) {
+        try {
+          result = await Server.writeDeviceRadio(device.sock, args.fer)
+        } catch (error) {
+          log.warn('API-setRadio 失败', args, error.message)
+          result.state = 99
+          result.msg = '设备返回超时'
+        }
+      } else {
+        result.state = 100
+        result.msg = '设备还未上线'
       }
 
       result.ext = args
@@ -215,7 +243,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备为建立'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getDeivce', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -242,7 +270,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '设备已存在，请修改ID 号'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-createDeivce', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -271,7 +299,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '设备不存在，请修改ID 号'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-updateDeivce', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -298,7 +326,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备为建立'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-deleteDeivce', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -332,7 +360,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备没有历史数据'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getHistory', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -364,7 +392,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前元素序号不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getElement', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -396,7 +424,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备类型不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getFacType', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -428,7 +456,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前作物不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getCrop', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -460,7 +488,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前肥料不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getFer', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -508,7 +536,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前灌区不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getGroup', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -558,7 +586,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '灌区不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-updateGroup', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -588,7 +616,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前灌区为建立'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-deleteGroup', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -620,7 +648,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前灌区设备不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getGroupDevice', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -641,7 +669,7 @@ const EventProcess: EventProcessInterface[] = [
         result.data = test
         result.msg = '灌区设备新建成功'
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-createGroupDevice', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -670,7 +698,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '灌区设备不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-updateGroupDevice', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -700,7 +728,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前灌区设备未建立'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-deleteGroupDevice', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -732,7 +760,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前设备未控制过'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getControlLog', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -764,7 +792,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前继电器类型不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getRelayType', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -796,7 +824,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前农事记录不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getTurnRecord', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }
@@ -909,7 +937,7 @@ const EventProcess: EventProcessInterface[] = [
           result.msg = '当前肥料不存在'
         }
       } catch (err) {
-        log.warn('API-getReal', args, err.message)
+        log.warn('API-getTurnFer', args, err.message)
         result.state = 98
         result.msg = '数据库已断开'
       }

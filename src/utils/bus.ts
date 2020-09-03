@@ -1,11 +1,14 @@
 import Vue from 'vue'
 import crypto from 'crypto'
+import { ResponedInterface, TurnStateInterface } from './types/type'
 
 enum BusEvents {
   getReals = 'getReals', // 从库中获取多个实时数据
   getReal = 'getReal', // 发送指令给设备，获取实时数据
   setRelays = 'setRelays', // 设置同一设备下的多个继电器
   setRelay = 'setRelay', // 设置同一设备下的单个继电器
+  setRadio = 'setRadio', // 设置水肥机施肥比例
+
   getDeivce = 'getDeivce', // 获取指定id设备信息,如果指定id数组，则获取对应的设备信息，否则获取所有的
   createDeivce = 'createDeivce', // 生成一个设备信息
   updateDeivce = 'updateDeivce', // 修改一个设备信息
@@ -36,7 +39,9 @@ enum BusEvents {
   getTurnContent = 'getTurnContent', // 获取轮灌信息内容
   createTurnContent = 'createTurnContent', // 获取轮灌信息内容
   updateTurnContent = 'updateTurnContent', // 获取轮灌信息内容
-  deleteTurnContent = 'deleteTurnContent' // 删除轮灌信息内容
+  deleteTurnContent = 'deleteTurnContent', // 删除轮灌信息内容 //组件间通讯
+
+  turnIrrigationState = 'turnIrrigationState' // 轮灌状态事件
 }
 
 const bus = new Vue()
@@ -50,24 +55,36 @@ export function sha256 (data: any, key = '123456') {
   return hash
 }
 
-export function event (eve: string, args: any) {
+export function emitterTurnIrrigationState (state: TurnStateInterface) {
+  bus.$emit('turnIrrigationState', state)
+}
+export function onTurnIrrigationState (call: Function) {
+  bus.$on('turnIrrigationState', call)
+}
+
+export function event (eve: string, args: any): Promise<ResponedInterface> {
   const str = sha256(eve, JSON.stringify(args))
-  return new Promise((resolve, reject) => {
-    // console.log(args);
-    window.ipc.send(eve, args)
-    window.ipc.on(eve, (event: any, back: any) => {
+  const param = {
+    event: eve,
+    callback: (event: any, back: any) => {
       const temp = sha256(eve, JSON.stringify(back.ext))
       if (temp === str) {
         bus.$emit(str, back)
       }
-    })
-    bus.$on(str, (args: any) => {
+    }
+  }
+  return new Promise((resolve, reject) => {
+    // console.log(args);
+    window.ipc.send(param.event, args)
+    window.ipc.on(param.event, param.callback)
+    bus.$once(str, (args: any) => {
+      window.ipc.removeListener(param.event, param.callback)
       resolve(args)
     })
   })
 }
 
-export function getReals (id?: number[] | number): Promise<any> {
+export function getReals (id?: number[] | number) {
   return event(BusEvents.getReals, { id })
 }
 
@@ -86,6 +103,10 @@ export function setRelays (
 
 export function setRelay (id: number, start: number, state: number) {
   return event(BusEvents.setRelay, { id, start, state })
+}
+
+export function setRadio (id: number, fer: number[]) {
+  return event(BusEvents.setRadio, { id, fer })
 }
 
 export function getDevice (id?: number[] | number) {

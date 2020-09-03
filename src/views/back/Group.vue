@@ -77,14 +77,9 @@
                     v-for="device in group.device"
                     :key="device.id"
                     class="text"
+                    :title="device | filterDeviceName"
                   >
-                    {{
-                      device.exp === null
-                        ? device.facName
-                        : device.facName +
-                          "-" +
-                          device.device.relay[device.exp].name
-                    }}
+                    {{ device | filterDeviceName }}
                   </div>
                 </el-scrollbar>
               </el-card>
@@ -130,14 +125,15 @@ import * as Bus from '@/utils/bus'
 import { ResponedInterface } from './utils/types/type'
 import NewGroup from '@/components/back/group/NewGroup.vue'
 
-import { Card, Tooltip, Message, MessageBox } from 'element-ui'
+import { Card, Tooltip, Tag, Message, MessageBox } from 'element-ui'
 
 import { DeviceInterface } from '@/components/back/setting/NewDevice.vue'
 import { RelayInfoInterface } from '../../components/back/setting/RelayInfo.vue'
-const otherModule = namespace('other')
-const databaseModule = namespace('database')
 Vue.use(Card)
 Vue.use(Tooltip)
+Vue.use(Tag)
+const otherModule = namespace('other')
+const databaseModule = namespace('database')
 
 interface GroupDeviceInterface {
   id: number;
@@ -161,6 +157,13 @@ interface GroupInterface {
 @Component({
   components: {
     NewGroup
+  },
+  filters: {
+    filterDeviceName (device: GroupDeviceInterface) {
+      return device.exp === null
+        ? device.facName
+        : device.facName + '-' + device.device.relay[device.exp].name
+    }
   }
 })
 export default class Group extends Vue {
@@ -466,6 +469,8 @@ export default class Group extends Vue {
         device.fac_type.id === 4 || device.fac_type.id === 5
     )
   }
+
+  // private get getGroupDeviceName () {}
 
   private mounted () {
     this.updateGroupList()

@@ -11,11 +11,13 @@
       <s-block class="weather" :width="7.6" :height="1.6" title="气象信息">
         <s-weather></s-weather>
       </s-block>
-      <s-block class="topological" :width="5" :height="5.6" title="水肥拓扑图">
-        水肥拓扑图
-      </s-block>
+      <s-block class="topological" :width="5" :height="5.6" title="水肥拓扑图"
+        >水肥拓扑图</s-block
+      >
       <s-block class="farming" :width="2.6" :height="5.6" title="农事待办">
-        农事待办
+        <keep-alive>
+          <s-turn-irri></s-turn-irri>
+        </keep-alive>
       </s-block>
       <s-block class="entry" :width="2.6" :height="1.6" title="入口">
         <ul>
@@ -39,6 +41,7 @@ import sBlock from '@/components/home/Block.vue'
 import sClock from '@/components/clock/Index.vue'
 import sMoisture from '@/components/home/Moisture.vue'
 import sWeather from '@/components/home/Weather.vue'
+import sTurnIrri from '@/components/home/TurnIrri.vue'
 
 @Component({
   components: {
@@ -46,12 +49,13 @@ import sWeather from '@/components/home/Weather.vue'
     sBlock,
     sMoisture,
     sWeather,
+    sTurnIrri,
     sClock
   }
 })
 export default class Home extends Vue {
   // 头部标题参数
-  private header = '智惠水肥控制系统';
+  private header = '智慧补墒衡养监控平台';
 }
 </script>
 

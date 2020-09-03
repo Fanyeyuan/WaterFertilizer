@@ -59,11 +59,11 @@ const routes: Array<RouteConfig> = [
         component: () => import('../views/back/Param.vue')
       }
     ]
+  },
+  {
+    path: '*',
+    redirect: '/'
   }
-  // {
-  //   path: "*",
-  //   redirect: "/"
-  // }
 ]
 
 const router = new VueRouter({

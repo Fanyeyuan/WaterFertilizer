@@ -16,7 +16,7 @@
           >
           </el-date-picker>
         </div>
-        <p class="endTime">预计结束时间： {{ endTime | dateFormat }}</p>
+        <p class="endTime">预计结束时间： {{ param.endTime | dateFormat }}</p>
         <div class="option">
           <div v-if="!editFlag">
             <el-button
@@ -134,7 +134,7 @@ export interface TurnRecordInterface {
 export default class ParamList extends Vue {
   private editFlag = false;
   @Prop({ type: Object, required: true }) private params!: TurnRecordInterface;
-  private param!: TurnRecordInterface;
+  private param: TurnRecordInterface = this.params;
   private addGroup: TurnGroupContent | null = null;
 
   @Prop({ type: Array, required: true }) private GroupList!: Group[];

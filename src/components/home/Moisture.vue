@@ -1202,12 +1202,12 @@ export default class Moisture extends Vue {
 
     // 使用刚指定的配置项和数据显示图表。
     this.chart.setOption(option)
-    console.log(option)
+    // console.log(option)
   }
 
   private get getXNames () {
     const result = this.history.map(item => item.dataTime)
-    console.log(result)
+    // console.log(result)
     return result
   }
 
@@ -1222,7 +1222,7 @@ export default class Moisture extends Vue {
       const unit = this.data.find(
         (item: any) => item.eKey === 'e' + (index + 1)
       )
-      console.log(unit, 'e' + (index + 1))
+      // console.log(unit, 'e' + (index + 1))
       return {
         name: unit.eName,
         type: 'line',
@@ -1231,7 +1231,7 @@ export default class Moisture extends Vue {
         data: item
       }
     })
-    console.log(result)
+    // console.log(result)
     return result
   }
 

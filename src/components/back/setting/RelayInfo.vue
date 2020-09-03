@@ -80,7 +80,7 @@ import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')
 
 export interface RelayInfoInterface {
-  index: 0;
+  index: number;
   name: string;
   relay: Relay;
   status?: number;
@@ -120,7 +120,7 @@ export default class RelayInfo extends Vue {
   @Watch('value', { immediate: true, deep: true })
   private infoChange (value: RelayInfoInterface[]) {
     this.relay = JSON.parse(JSON.stringify(value))
-    // console.log(this.relayNumber);
+    console.log(this.relay)
     for (let i = this.relay.length; i < this.relayNumber; i++) {
       const data = JSON.parse(JSON.stringify(this.defaultRelayInfo))
       data.index = i

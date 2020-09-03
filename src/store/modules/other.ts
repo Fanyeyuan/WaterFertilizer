@@ -10,10 +10,10 @@ const mutations: any = {
     states.DeviceList = params
   },
   saveGroupList (states: any, params: object) {
-    states.saveGroupList = params
+    states.GroupList = params
   },
   saveTurnInfo (states: any, params: object) {
-    states.saveTurnInfo = params
+    states.TurnInfo = params
   }
 }
 

@@ -15,10 +15,7 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator'
 import * as Bus from '@/utils/bus'
-import { ResponedInterface } from './utils/types/type'
 import { Message } from 'element-ui'
-
-import { namespace } from 'vuex-class'
 
 import {
   Device as FacDevice,
@@ -33,9 +30,21 @@ import {
   TurnFer,
   TurnContent
 } from '@/app/main/database/model'
-import { deviceInterface } from '@/components/back/setting/NewDevice.vue'
-import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
-import { RelayInfoInterface } from '@/components/back/setting/RelayInfo.vue'
+
+import * as TurnLogic from '@/utils/logic'
+import {
+  DeviceInterface,
+  TurnRecordInterface,
+  TurnGroupContent,
+  GroupInterface,
+  TurnStateInterface,
+  ResponedInterface,
+  ChannelInfoInterface,
+  RelayInfoInterface,
+  TurnContentStateInterface
+} from './utils/types/type'
+
+import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')
 const otherModule = namespace('other')
 
@@ -80,9 +89,11 @@ export default class App extends Vue {
   @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
   @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
 
-  @otherModule.State('DeviceList') DeviceList!: deviceInterface[];
+  @otherModule.State('DeviceList') DeviceList!: DeviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
+  @otherModule.State('GroupList') GroupList!: GroupInterface[];
   @otherModule.Action('saveGroupList') saveGroupList!: (param: any[]) => void;
+  @otherModule.State('TurnInfo') TurnInfo!: TurnRecordInterface[];
   @otherModule.Action('saveTurnInfo') private saveTurnInfo!: (
     param: any[]
   ) => void;
@@ -166,6 +177,12 @@ export default class App extends Vue {
 
   // 存储灌区列表
   private get getGroupList () {
+    if (
+      !this.GroupDevice.length ||
+      !this.DeviceList.length ||
+      !this.Group.length ||
+      !this.Crop.length
+    ) { return [] }
     const getGroupDevice = (groupId: number) => {
       const groupDeviceList = this.GroupDevice.filter(
         (item: GroupDevice) => item.group_id === groupId
@@ -173,7 +190,7 @@ export default class App extends Vue {
 
       return groupDeviceList.map((item: GroupDevice) => {
         const device = this.DeviceList.find(
-          (device: deviceInterface) => device.fac_id === item.fac_id
+          (device: DeviceInterface) => device.fac_id === item.fac_id
         )
         return {
           id: item.id,
@@ -213,8 +230,15 @@ export default class App extends Vue {
 
   @Watch('getGroupList')
   private saveGroupLists (group: any) {
-    // console.log(group);
     this.saveGroupList(group)
+  }
+
+  private getScheduledTime (param: TurnRecordInterface) {
+    let time = param.startTime
+    param.group.forEach((item: any) => {
+      time += (item.runTime + item.delay) * 60 * 1000
+    })
+    return time
   }
 
   private get getParams () {
@@ -234,9 +258,10 @@ export default class App extends Vue {
         }
       })
 
-      return {
+      const param: TurnRecordInterface = {
         id: recode.id,
         startTime: recode.start_time,
+        endTime: 0,
         userId: recode.user_id,
         name: recode.name,
         createTime: recode.create_time,
@@ -262,6 +287,8 @@ export default class App extends Vue {
           }
         })
       }
+      param.endTime = this.getScheduledTime(param)
+      return param
     })
     return params
   }
@@ -271,7 +298,24 @@ export default class App extends Vue {
     this.saveTurnInfo(value)
   }
 
+  // 监听 轮灌参数列表 灌区列表 设备列表
+  @Watch('DeviceList', { immediate: true, deep: true })
+  private evalDeviceList (list: DeviceInterface) {
+    TurnLogic.evalDeviceList(list)
+  }
+
+  @Watch('GroupList', { immediate: true, deep: true })
+  private evalGroupList (list: GroupInterface) {
+    TurnLogic.evalGroupList(list)
+  }
+
+  @Watch('TurnInfo', { immediate: true, deep: true })
+  private evalRecordList (list: TurnRecordInterface) {
+    TurnLogic.evalRecordList(list)
+  }
+
   private mounted () {
+    TurnLogic.irrigationRun()
     Bus.getReals().then((res: ResponedInterface) => {
       if (res.state === 0) {
         this.saveReals(res.data)

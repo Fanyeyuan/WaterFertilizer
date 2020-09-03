@@ -75,7 +75,12 @@ import moment from 'moment'
 import { namespace } from 'vuex-class'
 
 import * as Bus from '@/utils/bus'
-import { ResponedInterface } from './utils/types/type'
+import {
+  ChannelInfoInterface,
+  RelayInfoInterface,
+  DeviceInterface,
+  ResponedInterface
+} from '@/utils/types/type'
 
 import {
   Table,
@@ -99,11 +104,9 @@ import {
   Element,
   Relay
 } from '@/app/main/database/model'
-import NewDevice, {
-  deviceInterface
-} from '@/components/back/setting/NewDevice.vue'
-import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
-import { RelayInfoInterface } from '@/components/back/setting/RelayInfo.vue'
+import NewDevice from '@/components/back/setting/NewDevice.vue'
+// import { ChannelInfoInterface } from '@/components/back/setting/ChannelInfo.vue'
+// import { RelayInfoInterface } from '@/components/back/setting/RelayInfo.vue'
 const databaseModule = namespace('database')
 const otherModule = namespace('other')
 
@@ -213,7 +216,7 @@ export default class Device extends Vue {
     }
   }
 
-  private eidtDeviceToDB (value: deviceInterface, isUpdate = false) {
+  private eidtDeviceToDB (value: DeviceInterface, isUpdate = false) {
     const device = new FacDevice()
     device.id = value.id
     device.creator_id = value.creator_id; // eslint-disable-line
@@ -225,11 +228,11 @@ export default class Device extends Vue {
 
     let temp = []
     if (value.sensor.length) {
-      temp = value.sensor.map(item => {
+      temp = value.sensor.map((item: ChannelInfoInterface) => {
         return item.ele.indexs
       })
       device.ele_num = temp.join("/"); // eslint-disable-line
-      temp = value.sensor.map(item => {
+      temp = value.sensor.map((item: ChannelInfoInterface) => {
         return item.name
       })
       device.ele_name = temp.join("/"); // eslint-disable-line
@@ -240,11 +243,11 @@ export default class Device extends Vue {
     }
 
     if (value.relay.length) {
-      temp = value.relay.map(item => {
+      temp = value.relay.map((item: RelayInfoInterface) => {
         return item.relay.indexs
       })
       device.relay_num = temp.join("/"); // eslint-disable-line
-      temp = value.relay.map(item => {
+      temp = value.relay.map((item: RelayInfoInterface) => {
         return item.name
       })
       device.relay_name = temp.join("/"); // eslint-disable-line
@@ -262,11 +265,11 @@ export default class Device extends Vue {
     device.relay_extend = value.relay_extend; // eslint-disable-line
     device.relay_extend_count = value.relay_extend_count; // eslint-disable-line
     if (value.exRelay.length) {
-      temp = value.exRelay.map(item => {
+      temp = value.exRelay.map((item: RelayInfoInterface) => {
         return item.relay.indexs
       })
       device.relay_extend_num = temp.join("/"); // eslint-disable-line
-      temp = value.exRelay.map(item => {
+      temp = value.exRelay.map((item: RelayInfoInterface) => {
         return item.name
       })
       device.relay_extend_name = temp.join("/"); // eslint-disable-line

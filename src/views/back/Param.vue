@@ -291,44 +291,44 @@ export default class Param extends Vue {
       const recordId = result.data
       for (let j = 0; j < this.addParam.group.length; j++) {
         const group = this.addParam.group[j]
-        let groupInfo: any = {
+        // let groupInfo: any = {
+        //   name: "",
+        //   turn_record_id: recordId,
+        //   group_id: group.group.id,
+        //   sequence: j,
+        //   delay: group.delay,
+        //   run_time: group.runTime,
+        //   irrigation_type: group.type
+        // };
+        // if (group.type !== 1) {
+        const ferId = []
+        const ferInfo = group.fer.map((fer: any) => {
+          return {
+            fer_id: fer.ferType.id,
+            fer_ratio: fer.ferRatio,
+            fer_weight: fer.ferWeight,
+            fer_time: fer.ferTime
+          }
+        })
+        for (let i = 0; i < ferInfo.length; i++) {
+          const result = await Bus.createTurnFer(ferInfo[i])
+          ferId.push(result.data)
+          console.log(result)
+        }
+        const groupInfo = {
           name: '',
           turn_record_id: recordId,
           group_id: group.group.id,
           sequence: j,
           delay: group.delay,
           run_time: group.runTime,
-          irrigation_type: group.type
+          irrigation_type: group.type,
+          fer1: ferId[0],
+          fer2: ferId[1],
+          fer3: ferId[2],
+          fer4: ferId[3]
         }
-        if (group.type !== 1) {
-          const ferId = []
-          const ferInfo = group.fer.map((fer: any) => {
-            return {
-              fer_id: fer.ferType.id,
-              fer_ratio: fer.ferRatio,
-              fer_weight: fer.ferWeight,
-              fer_time: fer.ferTime
-            }
-          })
-          for (let i = 0; i < ferInfo.length; i++) {
-            const result = await Bus.createTurnFer(ferInfo[i])
-            ferId.push(result.data)
-            console.log(result)
-          }
-          groupInfo = {
-            name: '',
-            turn_record_id: recordId,
-            group_id: group.group.id,
-            sequence: j,
-            delay: group.delay,
-            run_time: group.runTime,
-            irrigation_type: group.type,
-            fer1: ferId[0],
-            fer2: ferId[1],
-            fer3: ferId[2],
-            fer4: ferId[3]
-          }
-        }
+        // }
 
         const result = await Bus.createTurnContent(groupInfo)
         console.log(result)
@@ -382,44 +382,44 @@ export default class Param extends Vue {
     turn: TurnRecordInterface,
     param: TurnGroupContent
   ) {
-    let groupInfo: any = {
+    // let groupInfo: any = {
+    //   name: '',
+    //   turn_record_id: turn.id,
+    //   group_id: param.group.id,
+    //   sequence: turn.group.length,
+    //   delay: param.delay,
+    //   run_time: param.runTime,
+    //   irrigation_type: param.type
+    // }
+    // if (param.type !== 1) {
+    const ferId = []
+    const ferInfo = param.fer.map((fer: any) => {
+      return {
+        fer_id: fer.ferType.id,
+        fer_ratio: fer.ferRatio,
+        fer_weight: fer.ferWeight,
+        fer_time: fer.ferTime
+      }
+    })
+    for (let i = 0; i < ferInfo.length; i++) {
+      const result = await Bus.createTurnFer(ferInfo[i])
+      ferId.push(result.data)
+      console.log(result)
+    }
+    const groupInfo = {
       name: '',
       turn_record_id: turn.id,
       group_id: param.group.id,
       sequence: turn.group.length,
       delay: param.delay,
       run_time: param.runTime,
-      irrigation_type: param.type
+      irrigation_type: param.type,
+      fer1: ferId[0],
+      fer2: ferId[1],
+      fer3: ferId[2],
+      fer4: ferId[3]
     }
-    if (param.type !== 1) {
-      const ferId = []
-      const ferInfo = param.fer.map((fer: any) => {
-        return {
-          fer_id: fer.ferType.id,
-          fer_ratio: fer.ferRatio,
-          fer_weight: fer.ferWeight,
-          fer_time: fer.ferTime
-        }
-      })
-      for (let i = 0; i < ferInfo.length; i++) {
-        const result = await Bus.createTurnFer(ferInfo[i])
-        ferId.push(result.data)
-        console.log(result)
-      }
-      groupInfo = {
-        name: '',
-        turn_record_id: turn.id,
-        group_id: param.group.id,
-        sequence: turn.group.length,
-        delay: param.delay,
-        run_time: param.runTime,
-        irrigation_type: param.type,
-        fer1: ferId[0],
-        fer2: ferId[1],
-        fer3: ferId[2],
-        fer4: ferId[3]
-      }
-    }
+    // }
     const result = await Bus.createTurnContent(groupInfo)
 
     if (result.state === 0) {
@@ -484,7 +484,7 @@ export default class Param extends Vue {
   private getScheduledTime (param: TurnRecordInterface) {
     let time = param.startTime
     param.group.forEach((item: any) => {
-      time += (item.runTime + item.delay) * 6000
+      time += (item.runTime + item.delay) * 60000
     })
     console.log(time)
     return time

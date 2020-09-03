@@ -10,7 +10,8 @@ import {
 const enum XPHSUPPORTCMD {
   getDeviceReals = 'getDeviceReals', // 获取实时数据
   getDeviceId = 'getDeviceId', // 获取设备ID
-  setDeviceRelay = 'setDeviceRelay' // 控制继电器
+  setDeviceRelay = 'setDeviceRelay', // 控制继电器
+  setDeviceRadio = 'setDeviceRadio' // 设置施肥比例
 }
 
 export default class Xph {
@@ -80,6 +81,13 @@ export default class Xph {
               result.msg = `继电器JK${result.data.relay} 状态为 ${
                 result.data.state ? '开' : '关'
               }`
+              break
+            }
+            case 0xa0: {
+              // 继电器控制返回
+              result.type = XPHSUPPORTCMD.setDeviceRadio
+              result.data = data.slice(5, 9)
+              result.msg = `肥料比例设置成功 ${result.data.join(',')}`
               break
             }
           }
@@ -155,6 +163,33 @@ export default class Xph {
         result.type = XPHSUPPORTCMD.setDeviceRelay
         result.msg = `命令(${
           XPHSUPPORTCMD.setDeviceRelay
+        }) 发送的指令为 ${result.data.join(' ')}`
+        break
+      }
+      // ProtocolRequestInterface.data : {addr?:number; start:number, num:number, state:number[]}
+      case XPHSUPPORTCMD.setDeviceRadio: {
+        result.data = [
+          0,
+          0x10,
+          0,
+          0xa0,
+          16,
+          data.data[0] & 0xff, // 肥料比例 n/100
+          // 100, //比例基数
+          data.data[1] & 0xff, // 肥料比例 n/100
+          // 100, //比例基数
+          data.data[2] & 0xff, // 肥料比例 n/100
+          // 100, //比例基数
+          data.data[3] & 0xff // 肥料比例 n/100
+          // 100 //比例基数
+        ]
+        const crc = crc16modbus(Buffer.of(...result.data))
+        result.data.push(crc & 0x00ff)
+        result.data.push(crc >> 8)
+
+        result.type = XPHSUPPORTCMD.setDeviceRadio
+        result.msg = `命令(${
+          XPHSUPPORTCMD.setDeviceRadio
         }) 发送的指令为 ${result.data.join(' ')}`
         break
       }

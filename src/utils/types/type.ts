@@ -33,6 +33,13 @@ export enum TurnStateEnum {
   success
 }
 
+export enum TurnTypeEnum {
+  onlyIrrigation = 1,
+  timerFer = 2,
+  weightFer = 3,
+  radioFer = 4
+}
+
 export interface TurnContentStateInterface {
   id: number; // 灌溉制度      用来确认轮灌下使用的是哪一条灌溉制度
   state: number; // 0 初始状态 未启动， 1 等待执行中 2 成功， 3 失败， 4 操作中
@@ -41,6 +48,7 @@ export interface TurnContentStateInterface {
   pauseTime: number; // 暂停时间
   executionTime: number; // 当前制度需要执行的时间
   process: number; // 完成度
+  exp?: any; // 未知参数
 }
 
 export interface TurnStateInterface {
@@ -51,7 +59,8 @@ export interface TurnStateInterface {
   endTime: number; // 结束时间
   executionTime: number; // 当前制度需要执行的时间
   process: number; // 完成度
-  contentState: TurnContentStateInterface; // 当前灌溉制度状态
+  currentContentIndex: number; // 当前灌溉制度索引
+  contentStates: TurnContentStateInterface[]; // 所有灌溉制度状态
 }
 
 export interface TurnGroupContent {
@@ -105,7 +114,7 @@ export interface ChannelInfoInterface {
   status?: number;
 }
 export interface RelayInfoInterface {
-  index: 0;
+  index: number;
   name: string;
   relay: Relay;
   status?: number;

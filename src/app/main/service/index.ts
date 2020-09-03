@@ -91,6 +91,13 @@ export function writeDeviceJk (sock: net.Socket, start: number, state: number) {
     }
   })
 }
+
+export function writeDeviceRadio (sock: net.Socket, fer: number[]) {
+  return write(sock, {
+    type: 'setDeviceRadio',
+    data: fer
+  })
+}
 /** **************************************  常用功能封装区域结束  *****************************************/
 
 /** ************************************** 初始化默认回调区域 *****************************************/

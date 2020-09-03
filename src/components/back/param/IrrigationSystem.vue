@@ -114,7 +114,7 @@
       </div>
     </div>
     <div class="element" label="施肥配比:" v-if="group.type === 4">
-      <div class="left">施肥比例(/1000):</div>
+      <div class="left">施肥比例(/100):</div>
       <div class="right">
         <el-input-number
           size="small"
