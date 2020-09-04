@@ -1,0 +1,11 @@
+{
+  "weather-fac-id": 20190624,
+  "solid-fac-id": 16066682,
+  "weather-info": {
+    "ak": "d0w5OfcpnMrjyHTwDqUV4rGnQkGirwo5",
+    "location": {
+      "longitude": 114.31283,
+      "latitude": 30.5986341234
+    }
+  }
+}

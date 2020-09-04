@@ -11,20 +11,24 @@
         >
           <template slot="title">
             <div class="listTitle">
-              <span
-                >编号:<em>{{ param.id }}</em></span
-              >
-              <span
-                >开始时间:<em>{{ param.startTime | dateFormat }}</em></span
-              >
-              <span
-                >预计结束时间:<em>{{ param.endTime | dateFormat }}</em></span
-              >
-              <span
-                >灌区:<em :title="getGroupName(param)">{{
-                  getGroupName(param)
-                }}</em></span
-              >
+              <span>
+                编号:
+                <em>{{ param.id }}</em>
+              </span>
+              <span>
+                开始时间:
+                <em>{{ param.startTime | dateFormat }}</em>
+              </span>
+              <span>
+                预计结束时间:
+                <em>{{ param.endTime | dateFormat }}</em>
+              </span>
+              <span>
+                灌区:
+                <em :title="getGroupName(param)">
+                  {{ getGroupName(param) }}
+                </em>
+              </span>
               <span>
                 <el-button
                   type="danger"
@@ -51,22 +55,26 @@
         <el-collapse-item v-if="!!addParam" :name="params.length.toString()">
           <template slot="title">
             <div class="listTitle">
-              <span
-                >编号:<em>{{ addParam.id }}</em></span
-              >
-              <span
-                >开始时间:<em>{{ addParam.startTime | dateFormat }}</em></span
-              >
-              <span
-                >预计结束时间:<em>{{
-                  addParam.startTime | dateFormat
-                }}</em></span
-              >
-              <span
-                >灌区:<em :title="getGroupName(addParam)">{{
-                  getGroupName(addParam)
-                }}</em></span
-              >
+              <span>
+                编号:
+                <em>{{ addParam.id }}</em>
+              </span>
+              <span>
+                开始时间:
+                <em>{{ addParam.startTime | dateFormat }}</em>
+              </span>
+              <span>
+                预计结束时间:
+                <em>
+                  {{ addParam.startTime | dateFormat }}
+                </em>
+              </span>
+              <span>
+                灌区:
+                <em :title="getGroupName(addParam)">
+                  {{ getGroupName(addParam) }}
+                </em>
+              </span>
               <span>
                 <el-button
                   type="success"
@@ -116,12 +124,14 @@ import moment from 'moment'
 
 import { Collapse, CollapseItem, Message, MessageBox } from 'element-ui'
 
-import IrrigationSystem, {
-  TurnGroupContent
-} from '@/components/back/param/IrrigationSystem.vue'
-import ParamList, {
-  TurnRecordInterface
-} from '@/components/back/param/ParamList.vue'
+import IrrigationSystem from '@/components/back/param/IrrigationSystem.vue'
+import ParamList from '@/components/back/param/ParamList.vue'
+import {
+  TurnRecordInterface,
+  TurnGroupContent,
+  TurnGroupFer,
+  ResponedInterface
+} from '@/utils/types/type'
 import NewParam from '@/components/back/param/NewParam.vue'
 
 import * as Bus from '@/utils/bus'
@@ -152,11 +162,11 @@ const otherModule = namespace('other')
   }
 })
 export default class Param extends Vue {
-  @databaseModule.State('Group') private GroupList: Group[];
-  @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
-  @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
+  @databaseModule.State('Group') private GroupList!: Group[];
+  @databaseModule.State('TurnContent') private TurnContent!: TurnContent[];
+  @databaseModule.State('TurnFer') private TurnFer!: TurnFer[];
   @databaseModule.State('Fer') ferType!: Fer[];
-  @databaseModule.State('TurnRecord') private TurnRecord: TurnRecord[];
+  @databaseModule.State('TurnRecord') private TurnRecord!: TurnRecord[];
   @databaseModule.Action('saveTurnContent') saveTurnContent!: (
     param: any[]
   ) => void;
@@ -166,9 +176,9 @@ export default class Param extends Vue {
     param: any[]
   ) => void;
 
-  @otherModule.State('TurnInfo') private TurnInfo: TurnRecordInterface[];
+  @otherModule.State('TurnInfo') private TurnInfo!: TurnRecordInterface[];
   @otherModule.Action('saveTurnInfo') private saveTurnInfo!: (
-    param: any[]
+    param: TurnRecordInterface[]
   ) => void;
 
   private params: TurnRecordInterface[] = [];
@@ -226,10 +236,12 @@ export default class Param extends Vue {
 
   private activeCollapse = '0';
 
-  private getGroupName (param: any) {
+  private getGroupName (param: TurnRecordInterface) {
     // console.log(param);
     // if (!param.group.leng) return "";
-    return param.group.map((item: any) => item.group.name).join(',')
+    return param.group
+      .map((item: TurnGroupContent) => item.group.name)
+      .join(',')
   }
 
   private onAddClick () {
@@ -253,10 +265,10 @@ export default class Param extends Vue {
     let result = await Bus.deleteTurnRecord(param.id)
     console.log(result)
 
-    const ferId = []
+    const ferId: number[] = []
     const contentId = param.group.map((group: TurnGroupContent) => {
       console.log(group)
-      const id = group.fer.forEach((fer: any) => {
+      group.fer.forEach((fer: TurnGroupFer) => {
         ferId.push(fer.id)
       })
 
@@ -302,7 +314,7 @@ export default class Param extends Vue {
         // };
         // if (group.type !== 1) {
         const ferId = []
-        const ferInfo = group.fer.map((fer: any) => {
+        const ferInfo = group.fer.map((fer: TurnGroupFer) => {
           return {
             fer_id: fer.ferType.id,
             fer_ratio: fer.ferRatio,
@@ -393,7 +405,7 @@ export default class Param extends Vue {
     // }
     // if (param.type !== 1) {
     const ferId = []
-    const ferInfo = param.fer.map((fer: any) => {
+    const ferInfo = param.fer.map((fer: TurnGroupFer) => {
       return {
         fer_id: fer.ferType.id,
         fer_ratio: fer.ferRatio,
@@ -432,12 +444,12 @@ export default class Param extends Vue {
 
   private onOriginGroupListdelete (group: TurnGroupContent, index: number) {
     console.log(index, group)
-    const ferId = group.fer.map((fer: any) => fer.id)
+    const ferId = group.fer.map((fer: TurnGroupFer) => fer.id)
     Promise.all([
       Bus.deleteTurnContent(group.id),
       Bus.deleteTurnFer(ferId)
-    ]).then((res: any) => {
-      if (res[0].state === 0 && res[0].state === 0) {
+    ]).then((res: ResponedInterface[]) => {
+      if (res[0].state === 0 && res[1].state === 0) {
         Message.success('删除该分区参数成功')
         this.updateTurnInfoState()
       }
@@ -445,7 +457,7 @@ export default class Param extends Vue {
   }
 
   private async onOriginGroupListChange (param: TurnGroupContent) {
-    const ferInfo = param.fer.map((fer: any) => {
+    const ferInfo = param.fer.map((fer: TurnGroupFer) => {
       return {
         id: fer.id,
         fer_id: fer.ferType.id,
@@ -464,7 +476,7 @@ export default class Param extends Vue {
       name: '',
       turn_record_id: param.recordId,
       group_id: param.group.id,
-      sequence: param.group.length,
+      sequence: param.sequence,
       delay: param.delay,
       run_time: param.runTime,
       irrigation_type: param.type,
@@ -483,7 +495,7 @@ export default class Param extends Vue {
 
   private getScheduledTime (param: TurnRecordInterface) {
     let time = param.startTime
-    param.group.forEach((item: any) => {
+    param.group.forEach((item: TurnGroupContent) => {
       time += (item.runTime + item.delay) * 60000
     })
     console.log(time)
@@ -495,7 +507,7 @@ export default class Param extends Vue {
       Bus.getTurnRecord(),
       Bus.getTurnFer(),
       Bus.getTurnContent()
-    ]).then((res: any[]) => {
+    ]).then((res: ResponedInterface[]) => {
       console.log(res)
       if (res[0].state === 0) {
         this.saveTurnRecord(res[0].data)
@@ -515,69 +527,71 @@ export default class Param extends Vue {
     })
   }
 
-  private get getParams () {
-    const params = this.TurnRecord.map((recode: TurnRecord) => {
-      const content = this.TurnContent.filter(
-        (content: TurnContent) => recode.id === content.turn_record_id
-      )
-      const Fer = this.TurnFer.map((fer: TurnFer) => {
-        return {
-          id: fer.id,
-          ferType: this.ferType.find(
-            (ferType: Fer) => ferType.id === fer.fer_id
-          ),
-          ferRatio: fer.fer_ratio,
-          ferWeight: fer.fer_weight,
-          ferTime: fer.fer_time
-        }
-      })
+  // private get getParams() {
+  //   const params = this.TurnRecord.map((recode: TurnRecord) => {
+  //     const content = this.TurnContent.filter(
+  //       (content: TurnContent) => recode.id === content.turn_record_id
+  //     );
+  //     const Fer = this.TurnFer.map((fer: TurnFer) => {
+  //       return {
+  //         id: fer.id,
+  //         ferType: <any>(
+  //           this.ferType.find((ferType: Fer) => ferType.id === fer.fer_id)
+  //         ),
+  //         ferRatio: fer.fer_ratio,
+  //         ferWeight: fer.fer_weight,
+  //         ferTime: fer.fer_time
+  //       };
+  //     });
 
-      const param: TurnRecordInterface = {
-        id: recode.id,
-        startTime: recode.start_time,
-        endTime: 0,
-        userId: recode.user_id,
-        name: recode.name,
-        createTime: recode.create_time,
-        state: recode.state,
-        group: content.map((content: TurnContent) => {
-          return {
-            id: content.id,
-            recordId: content.turn_record_id,
-            group: this.GroupList.find(
-              (group: Group) => group.id === content.group_id
-            ),
-            delay: content.delay,
-            runTime: content.run_time,
-            sequence: content.sequence,
-            type: content.irrigation_type,
-            fer: Fer.filter(
-              (fer: TurnFer) =>
-                fer.id === content.fer1 ||
-                fer.id === content.fer2 ||
-                fer.id === content.fer3 ||
-                fer.id === content.fer4
-            )
-          }
-        })
-      }
-      param.endTime = this.getScheduledTime(param)
-      return param
-    })
-    return params
-  }
+  //     const param: TurnRecordInterface = {
+  //       id: recode.id,
+  //       startTime: recode.start_time,
+  //       endTime: 0,
+  //       userId: recode.user_id,
+  //       name: recode.name,
+  //       createTime: recode.create_time,
+  //       state: recode.state,
+  //       group: content.map((content: TurnContent) => {
+  //         return {
+  //           id: content.id,
+  //           recordId: content.turn_record_id,
+  //           group: <any>(
+  //             this.GroupList.find(
+  //               (group: Group) => group.id === content.group_id
+  //             )
+  //           ),
+  //           delay: content.delay,
+  //           runTime: content.run_time,
+  //           sequence: content.sequence,
+  //           type: content.irrigation_type,
+  //           fer: Fer.filter(
+  //             (fer: TurnGroupFer) =>
+  //               fer.id === content.fer1 ||
+  //               fer.id === content.fer2 ||
+  //               fer.id === content.fer3 ||
+  //               fer.id === content.fer4
+  //           )
+  //         };
+  //       })
+  //     };
+  //     param.endTime = this.getScheduledTime(param);
+  //     return param;
+  //   });
+  //   return params;
+  // }
 
   // 强制刷新使用
   private flag = true;
-  @Watch('getParams', { immediate: true, deep: true })
-  private saveTurnInfos (value: any) {
+  @Watch('TurnInfo', { immediate: true, deep: true })
+  private saveTurnInfos (value: TurnRecordInterface[]) {
     // this.flag = false;
     const activeCollapse = this.activeCollapse
     this.$nextTick(() => {
-      this.saveTurnInfo(value)
+      // this.saveTurnInfo(value);
       this.params = JSON.parse(JSON.stringify(value))
-      this.$forceUpdate()
-      console.log(value)
+      // this.$forceUpdate();
+      // console.log(value);
       // this.flag = true;
       this.activeCollapse = activeCollapse
     })

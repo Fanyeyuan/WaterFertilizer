@@ -62,7 +62,7 @@ import { Component, Vue, Ref, Emit, Prop, Watch } from 'vue-property-decorator'
 import { Crop } from '@/app/main/database/model'
 import { namespace } from 'vuex-class'
 
-import { deviceInterface } from '@/components/back/setting/NewDevice.vue'
+import { DeviceInterface } from '@/utils/types/type'
 
 import {
   Transfer,
@@ -85,13 +85,19 @@ Vue.use(Option)
 @Component
 export default class NewGroup extends Vue {
   @databaseModule.State('Crop') Crop!: Crop[];
-  @otherModule.State('DeviceList') deviceList!: deviceInterface[];
+  @otherModule.State('DeviceList') deviceList!: DeviceInterface[];
 
   @Prop({ type: Array, required: true }) device!: any[];
   @Prop({ type: Array, required: true }) machine!: any[];
   @Prop({ type: Object }) group!: any;
 
-  private form = {
+  private form: {
+    name: string;
+    crop: any;
+    machine: any;
+    valve: any[];
+    allValve: any[];
+  } = {
     name: '',
     crop: null,
     machine: null,
@@ -111,7 +117,7 @@ export default class NewGroup extends Vue {
   @Ref('form') private readonly groupForm!: Form;
 
   @Watch('device', { immediate: true, deep: true })
-  private generateData (value: deviceInterface[]) {
+  private generateData (value: DeviceInterface[]) {
     const list = JSON.parse(JSON.stringify(value))
     if (this.group.name) {
       // console.log(list);
@@ -127,7 +133,7 @@ export default class NewGroup extends Vue {
         }
       })
     }
-    list.map((item: deviceInterface) => {
+    list.map((item: DeviceInterface) => {
       let valve
       if (item.fac_type.id === 6) {
         item.relay.map((relay: any, index: number) => {
@@ -165,7 +171,7 @@ export default class NewGroup extends Vue {
         const valve = this.form.allValve.find(
           (valve: any) =>
             valve.facId === device.facId && valve.exp === device.exp
-        )
+        ) || { key: '', lable: '', facId: 0, exp: null }
         // console.log(device, valve);
         return valve.key
       })
@@ -187,9 +193,9 @@ export default class NewGroup extends Vue {
         return this.form.valve.map((valve: any) => {
           const item = this.form.allValve.find(
             (item: any) => item.key === valve
-          )
+          ) || { key: '', lable: '', facId: 0, exp: null }
           const device = this.deviceList.find(
-            (device: deviceInterface) => device.fac_id === item.facId
+            (device: DeviceInterface) => device.fac_id === item.facId
           )
           return {
             facId: item.facId,
@@ -205,7 +211,7 @@ export default class NewGroup extends Vue {
           // 查找当前被选中的设备
           const item = this.form.allValve.find(
             (item: any) => item.key === valve
-          )
+          ) || { key: '', lable: '', facId: 0, exp: null }
 
           // 标记被删除的数据
           const device = group.device.find((device: any) => {
@@ -229,7 +235,7 @@ export default class NewGroup extends Vue {
         return group.device
       }
     }
-    const getGroupMachine = (machine: deviceInterface) => {
+    const getGroupMachine = (machine: DeviceInterface) => {
       return {
         facName: machine.fac_name,
         facId: machine.fac_id,

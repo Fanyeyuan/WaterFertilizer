@@ -8,11 +8,17 @@
       :header-cell-style="{ 'text-align': 'center' }"
       :data="deviceList"
     >
-      <el-table-column prop="id" label="编号" width="50"> </el-table-column>
-      <el-table-column prop="fac_id" label="设备ID" width="90">
-      </el-table-column>
-      <el-table-column prop="fac_name" label="设备名称" width="140">
-      </el-table-column>
+      <el-table-column prop="id" label="编号" width="50"></el-table-column>
+      <el-table-column
+        prop="fac_id"
+        label="设备ID"
+        width="90"
+      ></el-table-column>
+      <el-table-column
+        prop="fac_name"
+        label="设备名称"
+        width="140"
+      ></el-table-column>
       <el-table-column label="设备类型" width="90">
         <template slot-scope="scope">
           <span>{{ scope.row.fac_type.name }}</span>
@@ -23,8 +29,7 @@
           <span>{{ scope.row.create_time | dateFormat }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="remark" label="备注" width="100">
-      </el-table-column>
+      <el-table-column prop="remark" label="备注" width="100"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button
@@ -69,7 +74,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, PropSync } from 'vue-property-decorator'
+import { Component, Vue, PropSync, Watch } from 'vue-property-decorator'
 import moment from 'moment'
 
 import { namespace } from 'vuex-class'
@@ -138,10 +143,10 @@ export default class Device extends Vue {
   @databaseModule.State('FacType') FacType!: FacType[];
   @databaseModule.State('Element') Element!: Element[];
   @databaseModule.State('Relay') Relay!: Relay[];
-  @otherModule.State('DeviceList') DeviceList!: deviceInterface[];
+  @otherModule.State('DeviceList') DeviceList!: DeviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
 
-  private deviceList: deviceInterface[] = [];
+  private deviceList: DeviceInterface[] = [];
 
   private title = '添加设备';
   private visible = false;
@@ -154,16 +159,16 @@ export default class Device extends Vue {
     exRelay: []
   };
 
-  private info: deviceInterface | {} = this.defaultInfo;
+  private info: any = this.defaultInfo;
 
-  private handleEdit (index: number, row: deviceInterface) {
+  private handleEdit (index: number, row: DeviceInterface) {
     this.info = row
     console.log(row)
     this.title = '修改设备'
     this.visible = true
   }
 
-  private handleDelete (index: number, row: deviceInterface) {
+  private handleDelete (index: number, row: DeviceInterface) {
     // this.deviceList.splice(index, 1);
     MessageBox.confirm('确定删除该设备吗?', {
       confirmButtonText: '确定',
@@ -192,13 +197,12 @@ export default class Device extends Vue {
     this.visible = true
   }
 
-  private async onEditDeviceConfirm (value: deviceInterface) {
+  private async onEditDeviceConfirm (value: DeviceInterface) {
     const index = this.deviceList.findIndex(
       (item: any) => item.id === value.id
     )
     let result: ResponedInterface
     if (index > -1) {
-      console.log(result, '1')
       // result = <ResponedInterface>await this.deviceList.splice(index, 1, value);
       result = await this.eidtDeviceToDB(value, true)
     } else {
@@ -218,7 +222,7 @@ export default class Device extends Vue {
 
   private eidtDeviceToDB (value: DeviceInterface, isUpdate = false) {
     const device = new FacDevice()
-    device.id = value.id
+    device.id = value.id || 0
     device.creator_id = value.creator_id; // eslint-disable-line
     device.fac_id = value.fac_id; // eslint-disable-line
     device.create_time = value.create_time; // eslint-disable-line
@@ -291,39 +295,41 @@ export default class Device extends Vue {
     Bus.getDevice().then((res: ResponedInterface) => {
       if (res.state === 0) {
         this.saveDevice(res.data)
-        this.updateDeviceList()
+        // this.updateDeviceList();
       } else {
         Message.warning(res.type + '-' + res.msg)
       }
     })
   }
 
-  private updateDeviceList () {
-    this.deviceList = this.Device.map((item: FacDevice) => {
-      return {
-        id: item.id,
-        creator_id: item.creator_id,
-        fac_id: item.fac_id,
-        create_time: item.create_time,
-        remark: item.remark,
-        fac_name: item.fac_name,
-        fac_type: this.FacType.find((ele: FacType) => ele.id === item.fac_type),
-        sensor: this.getSensor(item.ele_num, item.ele_name, 16),
-        relay: this.getRelay(item.relay_num, item.relay_name, 32),
-        relay_extend: item.relay_extend,
-        relay_extend_count: item.relay_extend_count,
-        exRelay: this.getRelay(
-          item.relay_extend_num,
-          item.relay_extend_name,
-          item.relay_extend_count
-        ),
-        longitude: item.longitude,
-        latitude: item.latitude,
-        read_interval: item.read_interval
-      }
-    })
-    this.saveDeviceList(this.deviceList) // 更新 devicelist 状态
-  }
+  // private updateDeviceList() {
+  //   this.deviceList = this.Device.map((item: FacDevice) => {
+  //     return {
+  //       id: item.id,
+  //       creator_id: item.creator_id,
+  //       fac_id: item.fac_id,
+  //       create_time: item.create_time,
+  //       remark: item.remark,
+  //       fac_name: item.fac_name,
+  //       fac_type: <any>(
+  //         this.FacType.find((ele: FacType) => ele.id === item.fac_type)
+  //       ),
+  //       sensor: this.getSensor(item.ele_num, item.ele_name, 16),
+  //       relay: this.getRelay(item.relay_num, item.relay_name, 32),
+  //       relay_extend: item.relay_extend,
+  //       relay_extend_count: item.relay_extend_count,
+  //       exRelay: this.getRelay(
+  //         item.relay_extend_num,
+  //         item.relay_extend_name,
+  //         item.relay_extend_count
+  //       ),
+  //       longitude: item.longitude,
+  //       latitude: item.latitude,
+  //       read_interval: item.read_interval
+  //     };
+  //   });
+  //   this.saveDeviceList(this.deviceList); // 更新 devicelist 状态
+  // }
 
   private getSensor (
     num: string,
@@ -336,7 +342,7 @@ export default class Device extends Vue {
     for (let i = 0; i < maxNumber; i++) {
       const temp: ChannelInfoInterface = {
         name: name[i],
-        ele: this.Element.find((item: Element) => item.indexs === ele[i]),
+        ele: this.Element.find((item: Element) => item.indexs === ele[i]), // eslint-disable-line
         status: 0
       }
       sensor.push(temp)
@@ -345,31 +351,34 @@ export default class Device extends Vue {
   }
 
   private getRelay (
-    num: string,
-    names: string,
-    maxNumber: number
+    num?: string,
+    names?: string,
+    maxNumber?: number
   ): RelayInfoInterface[] {
-    const ele = num.split('/')
-    const name = names.split('/')
     const relay: RelayInfoInterface[] = []
-    for (let i = 0; i < maxNumber; i++) {
-      if (ele[i] !== '0') {
-        const temp: RelayInfoInterface = {
-          index: i,
-          name: name[i],
-          relay: this.Relay.find(
-            (item: Relay) => item.indexs === Number(ele[i])
-          ),
-          status: 0
+    if (num !== undefined && names !== undefined && maxNumber !== undefined) {
+      const ele = num.split('/')
+      const name = names.split('/')
+      for (let i = 0; i < maxNumber; i++) {
+        if (ele[i] !== '0') {
+          const temp: RelayInfoInterface = {
+            index: i,
+            name: name[i],
+            relay: this.Relay.find(
+              (item: Relay) => item.indexs === Number(ele[i])
+            ),
+            status: 0
+          }
+          relay.push(temp)
         }
-        relay.push(temp)
       }
     }
     return relay
   }
 
-  private mounted () {
-    this.updateDeviceList()
+  @Watch('DeviceList', { immediate: true, deep: true })
+  private getDeviceList (value: DeviceInterface[]) {
+    this.deviceList = JSON.parse(JSON.stringify(this.DeviceList))
   }
 }
 </script>

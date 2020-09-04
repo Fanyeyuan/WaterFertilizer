@@ -172,8 +172,7 @@ import {
   PropSync
 } from 'vue-property-decorator'
 
-import { DeviceInterface } from '@/components/back/setting/NewDevice.vue'
-import { GroupInterface } from '@/views/back/Group.vue'
+import { DeviceInterface, GroupInterface } from '@/utils/types/type'
 import { Group, Fer } from '@/app/main/database/model'
 import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')

@@ -36,7 +36,7 @@
                     <p>灌区名称:{{ group.name }}</p>
                     <p>作物:{{ group.crop }}</p>
                     <p>水肥机:{{ group.machine.facName }}</p>
-                  </div> -->
+                  </div>-->
                   <!-- <el-tooltip content="灌区名称" placement="top">
                     <el-button>{{ group.name }}</el-button>
                   </el-tooltip>
@@ -45,14 +45,14 @@
                   </el-tooltip>
                   <el-tooltip content="水肥机" placement="top">
                     <el-button>{{ group.machine.facName }}</el-button>
-                  </el-tooltip> -->
+                  </el-tooltip>-->
                   <el-tag title="灌区名称" type="info">{{ group.name }}</el-tag>
-                  <el-tag title="作物名称" type="info">
-                    {{ group.crop.name }}
-                  </el-tag>
-                  <el-tag title="水肥机" type="info">{{
-                    group.machine.fac_name
+                  <el-tag title="作物名称" type="info">{{
+                    group.crop.name
                   }}</el-tag>
+                  <el-tag title="水肥机" type="info">
+                    {{ group.machine.fac_name }}
+                  </el-tag>
                   <el-button
                     style="float: right; padding: 3px 3px; margin-left: 2px"
                     type="primary"
@@ -108,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
 import {
   Device as FacDevice,
   FacType,
@@ -122,18 +122,19 @@ import {
 import { namespace } from 'vuex-class'
 
 import * as Bus from '@/utils/bus'
-import { ResponedInterface } from './utils/types/type'
+import {
+  ResponedInterface,
+  DeviceInterface,
+  RelayInfoInterface
+} from '@/utils/types/type'
 import NewGroup from '@/components/back/group/NewGroup.vue'
 
 import { Card, Tooltip, Tag, Message, MessageBox } from 'element-ui'
-
-import { DeviceInterface } from '@/components/back/setting/NewDevice.vue'
-import { RelayInfoInterface } from '../../components/back/setting/RelayInfo.vue'
+const otherModule = namespace('other')
+const databaseModule = namespace('database')
 Vue.use(Card)
 Vue.use(Tooltip)
 Vue.use(Tag)
-const otherModule = namespace('other')
-const databaseModule = namespace('database')
 
 interface GroupDeviceInterface {
   id: number;
@@ -176,7 +177,9 @@ export default class Group extends Vue {
     param: any[]
   ) => void;
 
-  private groups: any[] = [];
+  @otherModule.State('GroupList') GroupList!: GroupInterface[];
+
+  private groups: GroupInterface[] = [];
 
   private group: any = {
     name: '灌区B',
@@ -369,57 +372,61 @@ export default class Group extends Vue {
         } else {
           Message.warning(res[1].type + '-' + res[1].msg)
         }
-        this.updateGroupList()
+        // this.updateGroupList();
       }
     )
   }
 
-  private updateGroupList () {
-    const getGroupDevice = (groupId: number) => {
-      const groupDeviceList = this.GroupDevice.filter(
-        (item: GroupDevice) => item.group_id === groupId
-      )
+  // private updateGroupList() {
+  //   const getGroupDevice = (groupId: number) => {
+  //     const groupDeviceList = this.GroupDevice.filter(
+  //       (item: GroupDevice) => item.group_id === groupId
+  //     );
 
-      return groupDeviceList.map((item: GroupDevice) => {
-        const device = this.deviceList.find(
-          (device: DeviceInterface) => device.fac_id === item.fac_id
-        )
-        return {
-          id: item.id,
-          facId: item.fac_id,
-          facName: item.name || device.fac_name,
-          exp: item.exp,
-          group: item,
-          device
-        }
-      })
-    }
-    const getGroupMachine = (machineId: number) => {
-      const machine = this.deviceList.find(
-        (device: FacDevice) => device.fac_id === machineId
-      )
-      return {
-        facName: machine.fac_name,
-        facId: machine.fac_id,
-        device: machine,
-        exp: null
-      }
-    }
-    this.groups = this.Group.map((item: UserGroup) => {
-      return {
-        id: item.id,
-        userId: item.user_id,
-        name: item.name,
-        createTime: item.create_time,
-        crop: this.Crop.find((crop: Crop) => crop.id === item.crop_id),
-        machine: this.deviceList.find(
-          (device: FacDevice) => device.fac_id === item.machine_id
-        ),
-        device: getGroupDevice(item.id)
-      }
-    })
-    // console.log(this.groups);
-  }
+  //     return groupDeviceList.map((item: GroupDevice) => {
+  //       const device = <any>(
+  //         this.deviceList.find(
+  //           (device: DeviceInterface) => device.fac_id === item.fac_id
+  //         )
+  //       );
+  //       return {
+  //         id: item.id,
+  //         facId: item.fac_id,
+  //         facName: item.name || device.fac_name,
+  //         exp: item.exp,
+  //         group: item,
+  //         device
+  //       };
+  //     });
+  //   };
+  //   const getGroupMachine = (machineId: number) => {
+  //     const machine = <any>(
+  //       this.deviceList.find(
+  //         (device: DeviceInterface) => device.fac_id === machineId
+  //       )
+  //     );
+  //     return {
+  //       facName: machine.fac_name,
+  //       facId: machine.fac_id,
+  //       device: machine,
+  //       exp: null
+  //     };
+  //   };
+  //   this.groups = this.Group.map((item: UserGroup) => {
+  //     return {
+  //       id: item.id,
+  //       userId: item.user_id,
+  //       name: item.name,
+  //       createTime: item.create_time,
+  //       crop: this.Crop.find((crop: Crop) => crop.id === item.crop_id),
+  //       machine: this.deviceList.find(
+  //         (device: DeviceInterface) => device.fac_id === item.machine_id
+  //       ),
+  //       device: getGroupDevice(item.id)
+  //     };
+  //   });
+  //   // console.log(this.groups);
+  // }
 
   private get getCurrentDeviceList () {
     const deviceWithoutMachine = this.deviceList.filter(
@@ -428,11 +435,11 @@ export default class Group extends Vue {
     )
 
     // 将网关下的子设备，分开
-    const add = []
+    const add: DeviceInterface[] = []
     deviceWithoutMachine.forEach((device: DeviceInterface, index: number) => {
       // console.log(device);
       if (device.fac_type.id === 6) {
-        device.relay.forEach((relay: Relay) => {
+        device.relay.forEach((relay: RelayInfoInterface) => {
           const tmp = JSON.parse(JSON.stringify(device))
           tmp.relay = [relay]
           add.push(tmp)
@@ -472,8 +479,9 @@ export default class Group extends Vue {
 
   // private get getGroupDeviceName () {}
 
-  private mounted () {
-    this.updateGroupList()
+  @Watch('GroupList', { immediate: true, deep: true })
+  private getGroups (value: GroupInterface) {
+    this.groups = JSON.parse(JSON.stringify(this.GroupList))
   }
 }
 </script>

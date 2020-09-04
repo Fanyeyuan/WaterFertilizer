@@ -49,8 +49,8 @@ enum tables {
 
   sqliteSequence = 'sqlite_sequence'
 }
-
-const dbPath = path.join(__dirname, 'db.db')
+log.info(__static)
+const dbPath = path.join(__static, '/db.db')
 const db = new sqlite3.Database(dbPath)
 // this.db = new sqlite3.Database('db.db');       //临时目录  调试下可用，build后用不了
 // this.db = new sqlite3.Database(':memory:');    //保存在内存中
@@ -129,7 +129,7 @@ const insert = (
   )})`
   log.silly(sql)
   return new Promise((resolve, reject) => {
-    function call (err: Error, row: any) {
+    function call (this: any, err: Error, row: any) {
       !err ? resolve(this.lastID) : reject(err)
     }
     if (data) {
@@ -194,8 +194,8 @@ const update = (
   const values = Object.values(data).concat(Object.values(condition))
   return new Promise((resolve, reject) => {
     if (data) {
-      db.run(sql, values, (err: Error, row: any) => {
-        !err ? resolve(row) : reject(err)
+      db.run(sql, values, function (this: any, err: Error, row: any) {
+        !err ? resolve(this.changes) : reject(err)
       })
     } else {
       reject(new Error('传入参数为空'))
@@ -216,7 +216,7 @@ const del = (tableName: tables, obj?: { [key: string]: any }, op = 'and') => {
     const sql = 'delete from ' + tableName + ' where ' + flag
     log.silly(sql)
     return new Promise((resolve, reject) => {
-      function call (err: Error, row: any) {
+      function call (this: any, err: Error, row: any) {
         !err ? resolve(this.changes) : reject(err)
       }
       db.all(sql, call)
@@ -228,7 +228,7 @@ const del = (tableName: tables, obj?: { [key: string]: any }, op = 'and') => {
     log.silly(sql)
     db.run(sql)
     return new Promise((resolve, reject) => {
-      function call (err: Error, row: any) {
+      function call (this: any, err: Error, row: any) {
         !err ? resolve(this.changes) : reject(err)
       }
       db.run('delete from ' + tableName, (err: Error) => {

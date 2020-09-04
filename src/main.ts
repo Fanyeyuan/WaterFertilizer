@@ -3,11 +3,11 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-import * as Bus from '@/utils/bus'
+// import * as Bus from '@/utils/bus'
 
 Vue.config.productionTip = false
 
-Vue.prototype.$bus = Bus
+// Vue.prototype.$bus = Bus
 // Vue.use(Bus)
 // log.info("da");
 // console.log(window);
@@ -21,8 +21,9 @@ Vue.prototype.$bus = Bus
 //   console.log(event, args);
 // });
 
+console.log(__static)
 new Vue({
-  router,
   store,
+  router,
   render: h => h(App)
 }).$mount('#app')

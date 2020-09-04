@@ -63,6 +63,14 @@ export interface TurnStateInterface {
   contentStates: TurnContentStateInterface[]; // 所有灌溉制度状态
 }
 
+export interface TurnGroupFer {
+  id: number; // 肥料对用编号
+  ferType: Fer;
+  ferRatio?: number; // 肥料比例
+  ferWeight?: number; // 施肥量
+  ferTime?: number; // 施肥时间
+}
+
 export interface TurnGroupContent {
   id: number; // 记录编号
   recordId: number; // 轮灌记录编号
@@ -71,13 +79,7 @@ export interface TurnGroupContent {
   runTime: number; // 运行时间 分钟
   sequence: number; // 执行顺序
   type: number; // 施肥类型 1 仅灌溉 2 定时施肥 3 定量施肥 4 定比施肥
-  fer: {
-    id: number; // 肥料对用编号
-    ferType: Fer;
-    ferRatio: number; // 肥料比例
-    ferWeight: number; // 施肥量
-    ferTime: number; // 施肥时间
-  }[];
+  fer: TurnGroupFer[];
 }
 export interface TurnRecordInterface {
   id: number;
@@ -96,16 +98,16 @@ export interface DeviceInterface {
   creator_id: number;
   fac_id: number; // eslint-disable-line
   create_time: number; // eslint-disable-line
-  remark: string; // eslint-disable-line
+  remark?: string; // eslint-disable-line
   fac_name: string; // eslint-disable-line
   fac_type: FacType; // eslint-disable-line
   sensor: ChannelInfoInterface[];
   relay: RelayInfoInterface[];
-  relay_extend: boolean; // eslint-disable-line
-  relay_extend_count: 16; // eslint-disable-line
+  relay_extend?: boolean; // eslint-disable-line
+  relay_extend_count?: number; // eslint-disable-line
   exRelay: RelayInfoInterface[];
-  longitude: number;
-  latitude: number;
+  longitude?: number;
+  latitude?: number;
   read_interval: number; // eslint-disable-line
 }
 export interface ChannelInfoInterface {

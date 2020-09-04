@@ -52,7 +52,7 @@ export default class Segment extends Vue {
     canvas.width = this.width
     canvas.height = this.height
     const canvasRenderContext2D = canvas.getContext('2d')
-    const invokeNumber = {
+    const invokeNumber: { [key: string]: any } = {
       0: [
         this.leftTop,
         this.top,

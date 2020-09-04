@@ -118,7 +118,7 @@ import { Component, Vue, Prop, Ref } from 'vue-property-decorator'
 
 import { Form } from 'element-ui'
 import { Device, FacType } from '@/app/main/database/model'
-import { DeviceInterface } from '@/components/back/setting/NewDevice.vue'
+import { DeviceInterface } from '@/utils/types/type'
 
 @Component
 export default class DeviceInfo extends Vue {

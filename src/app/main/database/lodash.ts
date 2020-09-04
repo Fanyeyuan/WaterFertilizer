@@ -1,28 +1,28 @@
-import Lowdb from 'lowdb'
+import Lowdb, { LowdbSync } from 'lowdb'
 import FileSync from 'lowdb/adapters/FileSync'
 import path from 'path'
 import fs from 'fs-extra'
 import LodashID from 'lodash-id'
 import { app, remote } from 'electron'
 
-const isRenderer = process.type === 'renderer'
-// Render process use remote app
-const APP = isRenderer ? remote.app : app
-const STORE_PATH = APP.getPath('userData')
+// const isRenderer = process.type === "renderer";
+// // Render process use remote app
+// const APP = isRenderer ? remote.app : app;
+// const STORE_PATH = APP.getPath("userData");
 
-// In production mode, during the first open application
-// APP.getPath('userData') gets the path nested and the datastore.js is loaded.
-// if it doesn't exist, create it.
-if (!isRenderer) {
-  if (!fs.pathExistsSync(STORE_PATH)) {
-    fs.mkdirpSync(STORE_PATH)
-  }
-}
+// // In production mode, during the first open application
+// // APP.getPath('userData') gets the path nested and the datastore.js is loaded.
+// // if it doesn't exist, create it.
+// if (!isRenderer) {
+//   if (!fs.pathExistsSync(STORE_PATH)) {
+//     fs.mkdirpSync(STORE_PATH);
+//   }
+// }
 
 class DB {
-  db: Lowdb = {};
+  private db: any;
   constructor () {
-    const adapter = new FileSync(path.join(__dirname, '/db.json'))
+    const adapter = new FileSync(path.join(__static, '/db.json'))
     // console.log(path.join(STORE_PATH, '/db.json'))
     this.db = Lowdb(adapter)
     // Use lodash-id must use insert methods

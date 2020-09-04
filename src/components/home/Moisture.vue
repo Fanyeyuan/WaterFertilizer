@@ -1221,7 +1221,7 @@ export default class Moisture extends Vue {
     const result = data.map((item, index) => {
       const unit = this.data.find(
         (item: any) => item.eKey === 'e' + (index + 1)
-      )
+      ) || { eName: '' }
       // console.log(unit, 'e' + (index + 1))
       return {
         name: unit.eName,

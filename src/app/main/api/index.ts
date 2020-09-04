@@ -87,7 +87,11 @@ const EventProcess: EventProcessInterface[] = [
           result.data = []
 
           test.forEach((element: any) => {
-            const data = { id: element.fac_id, sensor: [], relay: [] }
+            const data: { id: number; sensor: any[]; relay: any[] } = {
+              id: element.fac_id,
+              sensor: [],
+              relay: []
+            }
             for (let i = 1; i <= 16; i++) {
               data.sensor.push(element[`e${i}`])
             }

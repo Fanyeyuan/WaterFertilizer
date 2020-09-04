@@ -157,7 +157,7 @@ export default class ChannelInfo extends Vue {
   }
 
   private onColumnClick (row: ChannelInfoInterface) {
-    row.status = 1 - row.status
+    row.status = 1 - (row.status || 0)
     row.status || this.onInfoChange()
     console.log(row)
   }

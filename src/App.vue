@@ -41,7 +41,8 @@ import {
   ResponedInterface,
   ChannelInfoInterface,
   RelayInfoInterface,
-  TurnContentStateInterface
+  TurnContentStateInterface,
+  TurnGroupFer
 } from './utils/types/type'
 
 import { namespace } from 'vuex-class'
@@ -85,9 +86,9 @@ export default class App extends Vue {
     param: any[]
   ) => void;
 
-  @databaseModule.State('TurnRecord') private TurnRecord: TurnRecord[];
-  @databaseModule.State('TurnContent') private TurnContent: TurnContent[];
-  @databaseModule.State('TurnFer') private TurnFer: TurnFer[];
+  @databaseModule.State('TurnRecord') private TurnRecord!: TurnRecord[];
+  @databaseModule.State('TurnContent') private TurnContent!: TurnContent[];
+  @databaseModule.State('TurnFer') private TurnFer!: TurnFer[];
 
   @otherModule.State('DeviceList') DeviceList!: DeviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
@@ -110,6 +111,7 @@ export default class App extends Vue {
       if (ele[i] !== '100') {
         const temp: ChannelInfoInterface = {
           name: name[i],
+          // eslint-disable-line
           ele: this.Element.find((item: Element) => item.indexs === ele[i]),
           status: 0
         }
@@ -120,24 +122,26 @@ export default class App extends Vue {
   }
 
   private getRelay (
-    num: string,
-    names: string,
-    maxNumber: number
+    num?: string,
+    names?: string,
+    maxNumber?: number
   ): RelayInfoInterface[] {
-    const ele = num.split('/')
-    const name = names.split('/')
     const relay: RelayInfoInterface[] = []
-    for (let i = 0; i < maxNumber; i++) {
-      if (ele[i] !== '0') {
-        const temp: RelayInfoInterface = {
-          index: i,
-          name: name[i],
-          relay: this.Relay.find(
-            (item: Relay) => item.indexs === Number(ele[i])
-          ),
-          status: 0
+    if (num !== undefined && names !== undefined && maxNumber !== undefined) {
+      const ele = num.split('/')
+      const name = names.split('/')
+      for (let i = 0; i < maxNumber; i++) {
+        if (ele[i] !== '0') {
+          const temp: RelayInfoInterface = {
+            index: i,
+            name: name[i],
+            relay: this.Relay.find(
+              (item: Relay) => item.indexs === Number(ele[i])
+            ),
+            status: 0
+          }
+          relay.push(temp)
         }
-        relay.push(temp)
       }
     }
     return relay
@@ -171,7 +175,8 @@ export default class App extends Vue {
   }
 
   @Watch('getDeviceList')
-  private saveDeviceLists (value: any[]) {
+  private saveDeviceLists (value: DeviceInterface[]) {
+    // console.log(value);
     this.saveDeviceList(value)
   }
 
@@ -182,7 +187,9 @@ export default class App extends Vue {
       !this.DeviceList.length ||
       !this.Group.length ||
       !this.Crop.length
-    ) { return [] }
+    ) {
+      return []
+    }
     const getGroupDevice = (groupId: number) => {
       const groupDeviceList = this.GroupDevice.filter(
         (item: GroupDevice) => item.group_id === groupId
@@ -204,7 +211,7 @@ export default class App extends Vue {
     }
     const getGroupMachine = (machineId: number) => {
       const machine = this.DeviceList.find(
-        (device: FacDevice) => device.fac_id === machineId
+        (device: DeviceInterface) => device.fac_id === machineId
       )
       return {
         facName: machine.fac_name,
@@ -221,7 +228,7 @@ export default class App extends Vue {
         createTime: item.create_time,
         crop: this.Crop.find((crop: Crop) => crop.id === item.crop_id),
         machine: this.DeviceList.find(
-          (device: FacDevice) => device.fac_id === item.machine_id
+          (device: DeviceInterface) => device.fac_id === item.machine_id
         ),
         device: getGroupDevice(item.id)
       }
@@ -246,7 +253,7 @@ export default class App extends Vue {
       const content = this.TurnContent.filter(
         (content: TurnContent) => recode.id === content.turn_record_id
       )
-      const Fer = this.TurnFer.map((fer: TurnFer) => {
+      const Fer: TurnGroupFer[] = this.TurnFer.map((fer: TurnFer) => {
         return {
           id: fer.id,
           ferType: this.ferType.find(
@@ -278,7 +285,7 @@ export default class App extends Vue {
             sequence: content.sequence,
             type: content.irrigation_type,
             fer: Fer.filter(
-              (fer: TurnFer) =>
+              (fer: TurnGroupFer) =>
                 fer.id === content.fer1 ||
                 fer.id === content.fer2 ||
                 fer.id === content.fer3 ||
@@ -300,17 +307,17 @@ export default class App extends Vue {
 
   // 监听 轮灌参数列表 灌区列表 设备列表
   @Watch('DeviceList', { immediate: true, deep: true })
-  private evalDeviceList (list: DeviceInterface) {
+  private evalDeviceList (list: DeviceInterface[]) {
     TurnLogic.evalDeviceList(list)
   }
 
   @Watch('GroupList', { immediate: true, deep: true })
-  private evalGroupList (list: GroupInterface) {
+  private evalGroupList (list: GroupInterface[]) {
     TurnLogic.evalGroupList(list)
   }
 
   @Watch('TurnInfo', { immediate: true, deep: true })
-  private evalRecordList (list: TurnRecordInterface) {
+  private evalRecordList (list: TurnRecordInterface[]) {
     TurnLogic.evalRecordList(list)
   }
 

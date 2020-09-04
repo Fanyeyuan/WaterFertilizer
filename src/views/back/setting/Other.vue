@@ -109,7 +109,6 @@ Vue.use(Backtop)
 Vue.use(Divider)
 Vue.use(InputNumber)
 const databaseModule = namespace('database')
-const otherModule = namespace('other')
 
 @Component
 export default class Other extends Vue {

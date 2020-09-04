@@ -64,7 +64,7 @@ Vue.use(CollapseItem)
 })
 export default class TurnIrri extends Vue {
   @otherModule.State('TurnInfo') TurnInfo!: TurnRecordInterface[];
-  private TurnState: TurnStateInterface = null;
+  private TurnState!: TurnStateInterface;
 
   private customColors = [
     { color: '#f56c6c', percentage: 20 },
@@ -77,7 +77,9 @@ export default class TurnIrri extends Vue {
   private getTotalPercentage (id: number): number {
     if (this.TurnState) {
       if (this.TurnState.id === id) {
-        if (this.TurnState.state !== TurnStateEnum.failure) { return this.TurnState.process * 100 } else return 100
+        if (this.TurnState.state !== TurnStateEnum.failure) {
+          return this.TurnState.process * 100
+        } else return 100
       }
     }
     return 0
@@ -98,7 +100,9 @@ export default class TurnIrri extends Vue {
         (item: TurnContentStateInterface) => item.id === id
       )
       if (content) {
-        if (content.state !== TurnStateEnum.failure) { return content.process * 100 } else return 100
+        if (content.state !== TurnStateEnum.failure) {
+          return content.process * 100
+        } else return 100
       }
     }
     return 0

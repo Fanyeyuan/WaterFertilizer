@@ -675,7 +675,7 @@ export default class Curve extends Vue {
     const result = data.map((item, index) => {
       const unit = this.data.find(
         (item: any) => item.eKey === 'e' + (index + 1)
-      )
+      ) || { eName: '' }
       return {
         name: unit.eName,
         type: 'line',
