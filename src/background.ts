@@ -2,6 +2,7 @@
 
 import { start } from './app/main'
 import * as Api from './app/main/api'
+import log from '@/app/common/log'
 
 import path from 'path'
 import { app, protocol, BrowserWindow } from 'electron'
@@ -24,9 +25,9 @@ function createWindow () {
     width: 1024,
     height: 768,
     frame: false,
-    // fullscreen: true,
-    x: 0,
-    y: 0,
+    // fullscreen: !isDevelopment,
+    // x: 0,
+    // y: 0,
     resizable: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -34,6 +35,9 @@ function createWindow () {
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: (process.env
         .ELECTRON_NODE_INTEGRATION as unknown) as boolean,
+      // enableRemoteModule: true,
+      // webSecurity: false,
+      // allowRunningInsecureContent: true,
       preload: path.join(__dirname, 'preload.js')
     }
   })
@@ -49,7 +53,22 @@ function createWindow () {
   }
 
   start()
-  Api.on('getReals', win.webContents)
+  Api.on('upgrade-download-progress', win.webContents)
+  Api.on('upgrade-downloaded', win.webContents)
+  Api.on('upgrade-error', win.webContents)
+
+  // win.webContents.on("crashed", () => {
+  //   log.error("渲染进程被kill");
+  //   // mainWindow.loadURL(winURL)
+  //   !!win && win.webContents.reload();
+  // });
+
+  // win.webContents.on("destroyed", () => {
+  //   log.error("渲染页面被销毁");
+  //   if (win !== null) {
+  //     win.webContents.reload();
+  //   }
+  // });
 
   win.on('closed', () => {
     win = null
@@ -73,6 +92,27 @@ app.on('activate', () => {
   }
 })
 
+function registerLocalResourceProtocol () {
+  protocol.registerHttpProtocol('baidu-weather', (request, callback) => {
+    const url = request.url.replace(/^baidu-weather:\/\//, 'https://')
+    // Decode URL to prevent errors when loading filenames with UTF-8 chars or chars like "#"
+    const decodedUrl = decodeURI(url) // Needed in case URL contains spaces
+    try {
+      const param = {
+        url: decodedUrl
+        // referrer: "http://授权的referrer头信息"
+      }
+      const result = callback(param)
+      return result
+    } catch (error) {
+      log.error(
+        'ERROR: registerLocalResourceProtocol: Could not get file path:',
+        error
+      )
+    }
+  })
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -85,6 +125,7 @@ app.on('ready', async () => {
   //     console.error("Vue Devtools failed to install:", e.toString());
   //   }
   // }
+  registerLocalResourceProtocol()
   createWindow()
 })
 

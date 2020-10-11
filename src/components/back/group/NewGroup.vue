@@ -136,16 +136,18 @@ export default class NewGroup extends Vue {
     list.map((item: DeviceInterface) => {
       let valve
       if (item.fac_type.id === 6) {
-        item.relay.map((relay: any, index: number) => {
-          const name =
-            relay.name !== '-' ? relay.name : relay.relay.name + index
-          valve = {
-            key: item.fac_id * 1000 + relay.index, // 如果有多个节点，则将设备ID 乘以1000 然后加上index
-            label: item.fac_name + '-' + name,
-            facId: item.fac_id,
-            exp: relay.index
+        item.relay.forEach((relay: any, index: number) => {
+          if (relay.relay.indexs !== 0) {
+            const name =
+              relay.name !== '-' ? relay.name : relay.relay.name + index
+            valve = {
+              key: item.fac_id * 1000 + relay.index, // 如果有多个节点，则将设备ID 乘以1000 然后加上index
+              label: item.fac_name + '-' + name,
+              facId: item.fac_id,
+              exp: relay.index
+            }
+            this.form.allValve.push(valve)
           }
-          this.form.allValve.push(valve)
         })
       } else {
         valve = {

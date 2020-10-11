@@ -26,7 +26,7 @@ const delay = (time = 60) => {
 const autoRead = (sock: net.Socket, id: number, time = 60) => {
   return setInterval(() => {
     Api.mainRadio('getReal', { id })
-  }, time * 1000)
+  }, 10 * 1000)
 }
 
 const getDeviceInfo = async (id: number) => {
@@ -118,6 +118,7 @@ const onConnected = async (sock: net.Socket) => {
       flag = false
     }
   } catch (error) {
+    flag = false
     log.warn(error.massage)
   }
 
@@ -127,8 +128,35 @@ const onConnected = async (sock: net.Socket) => {
   }
 }
 
+const deleteDevice2List = (sock: net.Socket) => {
+  for (const [key, value] of deviceList) {
+    if (
+      !!value.sock &&
+      value.sock.remoteAddress === sock.remoteAddress &&
+      value.sock.remotePort === sock.remotePort
+    ) {
+      sock.destroy()
+      !!value.timeHand && clearInterval(value.timeHand)
+      deviceList.delete(key)
+    }
+  }
+}
+
+const onClose = async (sock: net.Socket, error: boolean) => {
+  log.error(sock.remoteAddress + ':' + sock.remotePort + ' 链接已断开', error)
+  deleteDevice2List(sock)
+}
+
+const onError = async (sock: net.Socket, error: Error) => {
+  log.error(
+    sock.remoteAddress + ':' + sock.remotePort + ' 链路发生错误',
+    error
+  )
+  deleteDevice2List(sock)
+}
+
 export function start () {
-  Server.init({ connected: onConnected })
+  Server.init({ connected: onConnected, close: onClose, error: onError })
   Api.defaultApi()
   // Db.del(Db.tables.reals);
 }

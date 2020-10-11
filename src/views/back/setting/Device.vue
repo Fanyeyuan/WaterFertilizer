@@ -163,7 +163,7 @@ export default class Device extends Vue {
 
   private handleEdit (index: number, row: DeviceInterface) {
     this.info = row
-    console.log(row)
+    // console.log(row);
     this.title = '修改设备'
     this.visible = true
   }
@@ -231,6 +231,7 @@ export default class Device extends Vue {
     device.fac_type = value.fac_type.id; // eslint-disable-line
 
     let temp = []
+    // console.log(value);
     if (value.sensor.length) {
       temp = value.sensor.map((item: ChannelInfoInterface) => {
         return item.ele.indexs
@@ -247,6 +248,8 @@ export default class Device extends Vue {
     }
 
     if (value.relay.length) {
+      // console.log(value.relay);
+
       temp = value.relay.map((item: RelayInfoInterface) => {
         return item.relay.indexs
       })
@@ -331,54 +334,55 @@ export default class Device extends Vue {
   //   this.saveDeviceList(this.deviceList); // 更新 devicelist 状态
   // }
 
-  private getSensor (
-    num: string,
-    names: string,
-    maxNumber: number
-  ): ChannelInfoInterface[] {
-    const ele = num.split('/')
-    const name = names.split('/')
-    const sensor: ChannelInfoInterface[] = []
-    for (let i = 0; i < maxNumber; i++) {
-      const temp: ChannelInfoInterface = {
-        name: name[i],
-        ele: this.Element.find((item: Element) => item.indexs === ele[i]), // eslint-disable-line
-        status: 0
-      }
-      sensor.push(temp)
-    }
-    return sensor
-  }
+  // private getSensor(
+  //   num: string,
+  //   names: string,
+  //   maxNumber: number
+  // ): ChannelInfoInterface[] {
+  //   const ele = num.split("/");
+  //   const name = names.split("/");
+  //   const sensor: ChannelInfoInterface[] = [];
+  //   for (let i = 0; i < maxNumber; i++) {
+  //     const temp: ChannelInfoInterface = {
+  //       name: name[i],
+  //       ele: <any>this.Element.find((item: Element) => item.indexs === ele[i]), // eslint-disable-line
+  //       status: 0
+  //     };
+  //     sensor.push(temp);
+  //   }
+  //   return sensor;
+  // }
 
-  private getRelay (
-    num?: string,
-    names?: string,
-    maxNumber?: number
-  ): RelayInfoInterface[] {
-    const relay: RelayInfoInterface[] = []
-    if (num !== undefined && names !== undefined && maxNumber !== undefined) {
-      const ele = num.split('/')
-      const name = names.split('/')
-      for (let i = 0; i < maxNumber; i++) {
-        if (ele[i] !== '0') {
-          const temp: RelayInfoInterface = {
-            index: i,
-            name: name[i],
-            relay: this.Relay.find(
-              (item: Relay) => item.indexs === Number(ele[i])
-            ),
-            status: 0
-          }
-          relay.push(temp)
-        }
-      }
-    }
-    return relay
-  }
+  // private getRelay(
+  //   num?: string,
+  //   names?: string,
+  //   maxNumber?: number
+  // ): RelayInfoInterface[] {
+  //   const relay: RelayInfoInterface[] = [];
+  //   if (num !== undefined && names !== undefined && maxNumber !== undefined) {
+  //     const ele = num.split("/");
+  //     const name = names.split("/");
+  //     for (let i = 0; i < maxNumber; i++) {
+  //       if (ele[i] !== "0") {
+  //         const temp: RelayInfoInterface = {
+  //           index: i,
+  //           name: name[i],
+  //           relay: <any>(
+  //             this.Relay.find((item: Relay) => item.indexs === Number(ele[i]))
+  //           ),
+  //           status: 0
+  //         };
+  //         relay.push(temp);
+  //       }
+  //     }
+  //   }
+  //   return relay;
+  // }
 
   @Watch('DeviceList', { immediate: true, deep: true })
   private getDeviceList (value: DeviceInterface[]) {
     this.deviceList = JSON.parse(JSON.stringify(this.DeviceList))
+    // console.log(this.deviceList, this.DeviceList, value);
   }
 }
 </script>

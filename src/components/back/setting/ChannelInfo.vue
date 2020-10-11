@@ -34,6 +34,7 @@
           v-if="!!scope.row.status"
           v-model="scope.row.name"
           placeholder="请输入设备名称"
+          @change="onRowChange"
         ></el-input>
         <span v-else>{{ scope.row.name }}</span>
       </template>
@@ -58,6 +59,7 @@
           placeholder="请选择要素"
           v-if="!!scope.row.status"
           value-key="id"
+          @change="onRowChange"
         >
           <el-option
             :label="item.name"
@@ -136,7 +138,7 @@ export default class ChannelInfo extends Vue {
   @Prop({ type: Array, default: () => [] })
   private value!: ChannelInfoInterface[];
 
-  private channel!: ChannelInfoInterface[];
+  private channel: ChannelInfoInterface[] = [];
   private defaultChannelInfo: ChannelInfoInterface = {
     name: '-',
     ele: {
@@ -156,22 +158,29 @@ export default class ChannelInfo extends Vue {
     return this.channel
   }
 
+  private onRowChange () {
+    this.onInfoChange()
+  }
+
   private onColumnClick (row: ChannelInfoInterface) {
+    this.channel.forEach((value: ChannelInfoInterface) => {
+      if (value !== row) value.status = 0
+    })
     row.status = 1 - (row.status || 0)
-    row.status || this.onInfoChange()
-    console.log(row)
+    // row.status || this.onInfoChange();
+    // console.log(row);
   }
 
   @Watch('value', { immediate: true, deep: true })
   private infoChange (value: ChannelInfoInterface[]) {
+    let flag = false
     this.channel = JSON.parse(JSON.stringify(value))
     for (let i = this.channel.length + 1; i <= 16; i++) {
       const data = JSON.parse(JSON.stringify(this.defaultChannelInfo))
       this.channel.push(data)
+      flag = true
     }
-    if (this.channel.length < 16) {
-      // this.onInfoChange();
-    }
+    flag && this.onInfoChange()
   }
 
   // private mounted () {}

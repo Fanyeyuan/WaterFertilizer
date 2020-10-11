@@ -4,8 +4,11 @@ import lodash from '@/app/main/database/lodash'
 import { ipcRenderer } from 'electron'
 
 // preload.js
+window.log = log.functions
+window.ipc = ipcRenderer
+window.lodash = lodash
 process.once('loaded', () => {
-  window.log = log.functions
-  window.ipc = ipcRenderer
-  window.lodash = lodash
+  // window.log = {};
+  // window.ipc = {};
+  // window.lodash = {};
 })

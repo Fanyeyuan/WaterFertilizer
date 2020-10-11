@@ -1,40 +1,44 @@
 <template>
   <div class="turn-irri">
-    <!-- {{ TurnState }} -->
-    <el-collapse accordion style=" backgroud:transparent">
-      <div v-for="info in TurnInfo" :key="info.id">
-        <el-collapse-item>
-          <span style="color:white">{{ info.id }} 号农事记录</span>
-          <template slot="title">
-            <!-- <span>{{ info.startTime | dateFormat }}{{info.startTime | dateFormat}}</span> -->
-            <!-- <el-progress
+    <el-scrollbar class="scroolbar" :native="false">
+      <el-collapse accordion style="backgroud: transparent">
+        <div v-for="info in TurnInfo" :key="info.id">
+          <el-collapse-item>
+            <span style="color: white">{{ info.id }} 号农事记录</span>
+            <p style="color: white">
+              {{
+                `${dateFormat(info.startTime)} -> ${dateFormat(info.endTime)}`
+              }}
+            </p>
+            <template slot="title">
+              <!-- <span>{{ info.startTime | dateFormat }}{{info.startTime | dateFormat}}</span> -->
+              <!-- <el-progress
               style="width:100%;"
               :text-inside="true"
               :stroke-width="22"
               :percentage="getTotalPercentage(info.id)"
               :color="customColors"
             ></el-progress> -->
-            <s-progress
-              :title="
-                `开始时间:${dateFormat(info.startTime)} 结束时间:${dateFormat(
+              <s-progress
+                :title="`${dateFormat(info.startTime)} -> ${dateFormat(
                   info.endTime
-                )}`
-              "
-              :color="getTotalStatus(info.id)"
-              :sub-title="`结束时间:${dateFormat(info.endTime)}`"
-              :percentage="getTotalPercentage(info.id)"
-            ></s-progress>
-          </template>
-          <div v-for="group in info.group" :key="group.id">
-            <s-progress
-              :title="group.group.name"
-              :color="getStatus(info.id)"
-              :percentage="getPercentage(group.id)"
-            ></s-progress>
-          </div>
-        </el-collapse-item>
-      </div>
-    </el-collapse>
+                )}`"
+                :color="getTotalStatus(info.id)"
+                :sub-title="`结束时间:${dateFormat(info.endTime)}`"
+                :percentage="getTotalPercentage(info.id)"
+              ></s-progress>
+            </template>
+            <div v-for="group in info.group" :key="group.id">
+              <s-progress
+                :title="group.group.name"
+                :color="getStatus(info.id, group.id)"
+                :percentage="getPercentage(info.id, group.id)"
+              ></s-progress>
+            </div>
+          </el-collapse-item>
+        </div>
+      </el-collapse>
+    </el-scrollbar>
   </div>
 </template>
 
@@ -64,7 +68,7 @@ Vue.use(CollapseItem)
 })
 export default class TurnIrri extends Vue {
   @otherModule.State('TurnInfo') TurnInfo!: TurnRecordInterface[];
-  private TurnState!: TurnStateInterface;
+  private TurnState: TurnStateInterface[] = [];
 
   private customColors = [
     { color: '#f56c6c', percentage: 20 },
@@ -75,10 +79,13 @@ export default class TurnIrri extends Vue {
   ];
 
   private getTotalPercentage (id: number): number {
-    if (this.TurnState) {
-      if (this.TurnState.id === id) {
-        if (this.TurnState.state !== TurnStateEnum.failure) {
-          return this.TurnState.process * 100
+    if (this.TurnState.length) {
+      const state = this.TurnState.find(
+        (state: TurnStateInterface) => state.id === id
+      )
+      if (state) {
+        if (state.state !== TurnStateEnum.failure) {
+          return state.process * 100
         } else return 100
       }
     }
@@ -86,37 +93,50 @@ export default class TurnIrri extends Vue {
   }
 
   private getTotalStatus (id: number) {
-    if (this.TurnState) {
-      if (this.TurnState.id === id) {
-        if (this.TurnState.state === TurnStateEnum.failure) return '#f56c6c'
+    if (this.TurnState.length) {
+      const state = this.TurnState.find(
+        (state: TurnStateInterface) => state.id === id
+      )
+      if (state) {
+        if (state.state === TurnStateEnum.failure) return '#f56c6c'
       }
     }
     return this.customColors
   }
 
-  private getPercentage (id: number): number {
-    if (this.TurnState) {
-      const content = this.TurnState.contentStates.find(
-        (item: TurnContentStateInterface) => item.id === id
+  private getPercentage (infoId: number, groupId: number): number {
+    if (this.TurnState.length) {
+      const state = this.TurnState.find(
+        (state: TurnStateInterface) => state.id === infoId
       )
-      if (content) {
-        if (content.state !== TurnStateEnum.failure) {
-          return content.process * 100
-        } else return 100
+      if (state) {
+        const content = state.contentStates.find(
+          (item: TurnContentStateInterface) => item.id === groupId
+        )
+        if (content) {
+          if (content.state !== TurnStateEnum.failure) {
+            return content.process * 100
+          } else return 100
+        }
       }
     }
     return 0
   }
 
-  private getStatus (id: number) {
-    if (this.TurnState) {
-      const content = this.TurnState.contentStates.find(
-        (item: TurnContentStateInterface) => item.id === id
+  private getStatus (infoId: number, groupId: number) {
+    if (this.TurnState.length) {
+      const state = this.TurnState.find(
+        (state: TurnStateInterface) => state.id === infoId
       )
-      if (content) {
-        console.log(content.state)
-        if (content.state === TurnStateEnum.failure) {
-          return '#f56c6c'
+      if (state) {
+        const content = state.contentStates.find(
+          (item: TurnContentStateInterface) => item.id === groupId
+        )
+        if (content) {
+          console.log(content.state)
+          if (content.state === TurnStateEnum.failure) {
+            return '#f56c6c'
+          }
         }
       }
     }
@@ -124,12 +144,13 @@ export default class TurnIrri extends Vue {
   }
 
   private dateFormat (value: any, format: string) {
-    return moment(value).format(format || 'YYYY-MM-DD HH:mm:ss')
+    return moment(value).format(format || 'YYYY-MM-DD HH:mm')
   }
 
   private mounted () {
-    Bus.onTurnIrrigationState((state: TurnStateInterface) => {
+    Bus.onTurnIrrigationState((state: TurnStateInterface[]) => {
       this.TurnState = state
+      console.log(this.TurnState, state)
     })
   }
 }
@@ -138,17 +159,37 @@ export default class TurnIrri extends Vue {
 <style lang="scss">
 .turn-irri {
   width: 90%;
+  height: 90%;
   margin: 0 auto;
-  .el-collapse {
-    border: none !important;
+  .scroolbar {
+    height: 100%;
+    .el-collapse {
+      border: none !important;
+    }
+    .el-collapse-item__header {
+      background: transparent !important;
+      padding-right: 0.1rem;
+      border: none !important;
+      > i {
+        display: none;
+      }
+    }
+    .el-collapse-item__wrap {
+      padding-right: 0.1rem;
+      background: transparent !important;
+      border: none !important;
+    }
   }
-  .el-collapse-item__header {
-    background: transparent !important;
-    border: none !important;
-  }
-  .el-collapse-item__wrap {
-    background: transparent !important;
-    border: none !important;
+}
+</style>
+
+<style lang="scss">
+.turn-irri {
+  .scroolbar {
+    .el-scrollbar__wrap {
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+    }
   }
 }
 </style>

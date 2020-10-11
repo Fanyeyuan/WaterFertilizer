@@ -643,8 +643,12 @@ export default class Param extends Vue {
 }
 </style>
 <style lang="scss">
-.el-scrollbar__wrap {
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+.list {
+  .scroolbar {
+    .el-scrollbar__wrap {
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+    }
+  }
 }
 </style>

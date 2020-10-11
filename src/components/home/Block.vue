@@ -43,6 +43,7 @@ export default class Block extends Vue {
   // height: 1rem;
   position: relative;
   border: 1px solid rgba(68, 142, 168, 0.6);
+  border-radius: 0.1rem;
 
   ul {
     &:first-child {
@@ -56,21 +57,25 @@ export default class Block extends Vue {
           top: 0;
           left: 0;
           border-width: 2px 0 0 2px;
+          border-top-left-radius: 50%;
         }
         &:nth-of-type(2) {
           top: 0;
           right: 0;
           border-width: 2px 2px 0 0;
+          border-top-right-radius: 50%;
         }
         &:nth-of-type(3) {
           bottom: 0;
           right: 0;
           border-width: 0 2px 2px 0;
+          border-bottom-right-radius: 50%;
         }
         &:nth-of-type(4) {
           bottom: 0;
           left: 0;
           border-width: 0 0 2px 2px;
+          border-bottom-left-radius: 50%;
         }
       }
     }

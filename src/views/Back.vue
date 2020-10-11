@@ -47,12 +47,16 @@
           </el-submenu>
           <el-menu-item index="/back/about">
             <i class="el-icon-info"></i>
-            <span slot="title">关于</span>
+            <span slot="title">
+              <el-badge :is-dot="hasNewVersion" class="item">关于</el-badge>
+            </span>
           </el-menu-item>
         </el-menu>
       </el-aside>
       <el-main class="main">
-        <router-view></router-view>
+        <keep-alive>
+          <router-view></router-view>
+        </keep-alive>
       </el-main>
     </el-container>
   </el-container>
@@ -60,6 +64,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
+import { namespace } from 'vuex-class'
 
 import {
   Container,
@@ -69,14 +74,17 @@ import {
   Menu,
   MenuItem,
   Submenu,
-  MenuItemGroup
+  MenuItemGroup,
+  Badge
 } from 'element-ui'
+const versionModule = namespace('version')
 
 Vue.use(Container)
 Vue.use(Header)
 Vue.use(Aside)
 Vue.use(Main)
 Vue.use(Menu)
+Vue.use(Badge)
 Vue.use(Submenu)
 Vue.use(MenuItem)
 Vue.use(MenuItemGroup)
@@ -88,6 +96,7 @@ interface BackSettingRouterInterface {
 
 @Component
 export default class Setting extends Vue {
+  @versionModule.Getter('getHasNewVersion') private hasNewVersion!: boolean;
   private readonly settings: BackSettingRouterInterface[] = [
     { name: '设备管理', path: '/back/setting/device' },
     { name: '其他', path: '/back/setting/other' }
@@ -126,6 +135,11 @@ export default class Setting extends Vue {
     }
     .el-submenu__title.is-active {
       background: #6db6ff !important;
+    }
+
+    .item {
+      vertical-align: middle;
+      line-height: 1em;
     }
   }
 }

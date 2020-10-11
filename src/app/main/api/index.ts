@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { app, ipcMain, BrowserWindow } from 'electron'
 import { sha256, MyEventOn, MyEventEmiter } from '@/app/common/emitter'
 import * as Server from '../service'
 import * as Db from '../database'
@@ -6,6 +6,15 @@ import * as Model from '../database/model'
 import log from '@/app/common/log'
 import { deviceList, DeviceInterface, Device } from '../device/device'
 import { ProtocolResponedInterface } from '@/app/main/service/protocol'
+
+import {
+  checkUpdate,
+  setFeedURL,
+  checkForUpdate,
+  downloadUpdate,
+  quitAndInstall,
+  updateError
+} from '@/app/main/process/checkUpdater'
 
 interface EventProcessInterface {
   event: string;
@@ -17,6 +26,100 @@ interface EventProcessInterface {
  * event 事件名称  fun 处理方法
  */
 const EventProcess: EventProcessInterface[] = [
+  {
+    event: 'getCurrentInfo',
+    fun: async () => {
+      const result: ProtocolResponedInterface = {
+        type: 'getCurrentInfo',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      result.data = {
+        version: app.getVersion(),
+        path: app.getAppPath(),
+        os: process.platform + ' ' + process.arch,
+        // 返回electron 版本
+        eleVer: process.versions.electron,
+        // 返回正在使用的 Chromium 版本
+        chromeVer: process.versions.chrome,
+        // 返回正在使用的 V8 版本
+        v8Ver: process.versions.v8,
+        // 返回正在使用的 Node 版本
+        nodeVer: process.versions.node
+      }
+      result.msg = '信息获取完毕'
+      return result
+    }
+  },
+  {
+    event: 'checkUpdate',
+    fun: async () => {
+      const result: ProtocolResponedInterface = {
+        type: 'checkUpdate',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+
+      updateError()
+      setFeedURL()
+      let res: any
+      try {
+        res = await checkForUpdate()
+        result.msg = '有更新'
+      } catch (error) {
+        res = error
+        if (error.constructor.name === 'Error') {
+          result.state = 98
+          result.msg = '网络错误'
+        } else {
+          result.state = 99
+          result.msg = '当前以为最新版本'
+        }
+      }
+      log.debug(res, result)
+
+      result.data = res
+
+      return result
+    }
+  },
+  {
+    event: 'confimUpdate',
+    fun: async () => {
+      const result: ProtocolResponedInterface = {
+        type: 'confimUpdate',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      downloadUpdate()
+      checkUpdate()
+      log.debug('开始下载')
+
+      // result.data = res;
+      result.msg = '开始下载'
+      return result
+    }
+  },
+  {
+    event: 'confimInstall',
+    fun: async () => {
+      const result: ProtocolResponedInterface = {
+        type: 'confimInstall',
+        data: null,
+        state: 0,
+        msg: ''
+      }
+      const res = await quitAndInstall()
+      log.debug('开始安装', res)
+
+      result.data = res
+      result.msg = '开始安装'
+      return result
+    }
+  },
   {
     event: 'getReal',
     fun: async (args: { id: number; addr?: number }) => {
@@ -30,26 +133,43 @@ const EventProcess: EventProcessInterface[] = [
       if (device && device.sock) {
         try {
           result = await Server.ReadDeviceReals(device.sock)
-          const dat: { [key: string]: any } = new Model.Reals()
-          dat.fac_id = args.id; // eslint-disable-line
-          dat.data_time = new Date().getTime(); // eslint-disable-line
-          result.data.sensor.forEach((val: number, index: number) => {
-            dat[`e${index + 1}`] = val
-          })
-          result.data.relay.forEach((val: number, index: number) => {
-            dat[`jk${index + 1}`] = val
-          })
 
-          const test = await Db.get(Db.tables.reals, { fac_id: args.id }); // eslint-disable-line
-          // console.log(!!test, test);
-          if (test) {
-            // console.log(args.id + "1");
-            await Db.update(Db.tables.reals, dat, { fac_id: args.id }); // eslint-disable-line
-          } else {
-            // console.log(args.id + "2");
-            await Db.insert(Db.tables.reals, dat)
+          // console.log(result)
+          if (result.state === 0) {
+            // 如果返回的状态为正常
+            const dat: { [key: string]: any } = new Model.Reals()
+            dat.data_time = new Date().getTime(); // eslint-disable-line
+            const num = Math.ceil(result.data.sensor.length / 16) // 有多少个16
+            // console.log(result.data.sensor.length, num)
+
+            for (let j = 0; j < num; j++) {
+              if (j === 0) dat.fac_id = args.id
+              // eslint-disable-line
+              else dat.fac_id = args.id * 1000 + j; // eslint-disable-line
+
+              for (let i = 0; i < 16; i++) {
+                dat[`e${i + 1}`] = result.data.sensor[i + 16 * j] || 32767
+              }
+
+              for (let i = 0; i < 32; i++) {
+                if (j === 0) dat[`jk${i + 1}`] = result.data.relay[i] || 0
+                else dat[`jk${i + 1}`] = 0
+              }
+
+              const test = await Db.get(Db.tables.reals, {
+                fac_id: dat.fac_id
+              }); // eslint-disable-line
+              // console.log(!!test, test);
+              if (test) {
+                // console.log(args.id + "1");
+                await Db.update(Db.tables.reals, dat, { fac_id: dat.fac_id }); // eslint-disable-line
+              } else {
+                // console.log(args.id + "2");
+                await Db.insert(Db.tables.reals, dat)
+              }
+              await Db.insert(Db.tables.history, dat)
+            }
           }
-          await Db.insert(Db.tables.history, dat)
         } catch (error) {
           log.warn('API-getReal', args, error.message)
           result.state = 99
@@ -87,8 +207,14 @@ const EventProcess: EventProcessInterface[] = [
           result.data = []
 
           test.forEach((element: any) => {
-            const data: { id: number; sensor: any[]; relay: any[] } = {
+            const data: {
+              id: number;
+              time: number;
+              sensor: any[];
+              relay: any[];
+            } = {
               id: element.fac_id,
+              time: element.data_time,
               sensor: [],
               relay: []
             }
@@ -1186,16 +1312,19 @@ const on = (event: string, win: Electron.WebContents) => {
 }
 const mainRadio = async (event: string, args: any) => {
   const process = EventProcess.find((value: any) => value.event === event)
+  const lists = getSubscribeList(event)
   let back: any = {}
   if (process) {
     back = await process.fun(args)
-    const lists = getSubscribeList(event)
+  } else {
+    back = args
+  }
+  log.info(event, args)
 
-    if (lists) {
-      lists.forEach((win: Electron.WebContents) => {
-        win.send(event, back)
-      })
-    }
+  if (lists) {
+    lists.forEach((win: Electron.WebContents) => {
+      win.send(event, args)
+    })
   }
 }
 

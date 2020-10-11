@@ -3,7 +3,7 @@ import FileSync from 'lowdb/adapters/FileSync'
 import path from 'path'
 import fs from 'fs-extra'
 import LodashID from 'lodash-id'
-import { app, remote } from 'electron'
+// import { app, remote } from "electron";
 
 // const isRenderer = process.type === "renderer";
 // // Render process use remote app
@@ -22,8 +22,7 @@ import { app, remote } from 'electron'
 class DB {
   private db: any;
   constructor () {
-    const adapter = new FileSync(path.join(__static, '/db.json'))
-    // console.log(path.join(STORE_PATH, '/db.json'))
+    const adapter = new FileSync(path.join(__dirname, '../static/db.json'))
     this.db = Lowdb(adapter)
     // Use lodash-id must use insert methods
     this.db._.mixin(LodashID)
@@ -42,7 +41,7 @@ class DB {
 
   find (key: string, id: number) {
     const data = this.read().get(key)
-    if (typeof id !== 'object') {
+    if (typeof id !== 'number') {
       return data.find({ id }).value()
     } else {
       return data.find(id).value()

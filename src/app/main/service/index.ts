@@ -23,7 +23,6 @@ export async function read (
   const cmd = sock.remoteAddress + ':' + sock.remotePort + '-' + send.type
 
   server.send(sock, send.data)
-  log.debug('发送的内容:' + send.data.join(' '))
 
   const event = sha256(cmd)
 
@@ -40,7 +39,6 @@ export function write (
   const cmd = sock.remoteAddress + ':' + sock.remotePort + '-' + send.type
 
   server.send(sock, send.data)
-  log.debug('发送的内容:' + send.data.join(' '))
 
   const event = sha256(cmd)
 
@@ -134,7 +132,7 @@ async function onConnected (sock: net.Socket) {
 function onClose (sock: net.Socket, error: boolean) {
   log.debug(sock.remoteAddress + ':' + sock.remotePort + ' 链接已断开', error)
 }
-function onError (sock: net.Socket, error: boolean) {
+function onError (sock: net.Socket, error: Error) {
   log.debug(
     sock.remoteAddress + ':' + sock.remotePort + ' 链路发生错误',
     error
@@ -148,7 +146,7 @@ interface ServerInitInterface {
   connected?: (sock: net.Socket) => void;
   close?: (sock: net.Socket, error: boolean) => void;
   data?: (sock: net.Socket, data: Buffer) => void;
-  error?: (sock: net.Socket, error: boolean) => void;
+  error?: (sock: net.Socket, error: Error) => void;
 }
 
 export function init (obj: ServerInitInterface = {}) {

@@ -17,9 +17,11 @@
       <div v-if="active === 1">
         <s-real></s-real>
       </div>
-      <div v-if="active === 2">
-        <s-curve></s-curve>
-      </div>
+      <keep-alive>
+        <div v-if="active === 2">
+          <s-curve></s-curve>
+        </div>
+      </keep-alive>
       <div v-if="active === 3">
         <s-forecast7></s-forecast7>
       </div>
@@ -93,5 +95,9 @@ export default class Weather extends Vue {
   box-sizing: border-box;
   padding: 0.05rem;
   // height: 100%;
+  > div {
+    // height: 1.08rem;
+    height: 100%;
+  }
 }
 </style>

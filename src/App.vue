@@ -8,7 +8,10 @@
       <router-link to="/setting">Setting</router-link> |
       <router-link to="/about">About</router-link>
     </div>-->
-    <router-view />
+    <s-updater></s-updater>
+    <keep-alive>
+      <router-view />
+    </keep-alive>
   </div>
 </template>
 
@@ -17,6 +20,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator'
 import * as Bus from '@/utils/bus'
 import { Message } from 'element-ui'
 
+import sUpdater from '@/components/Updater.vue'
 import {
   Device as FacDevice,
   FacType,
@@ -42,14 +46,21 @@ import {
   ChannelInfoInterface,
   RelayInfoInterface,
   TurnContentStateInterface,
-  TurnGroupFer
+  TurnGroupFer,
+  RealApiInterface,
+  RealValueInterface,
+  DisplayRealInterface
 } from './utils/types/type'
 
 import { namespace } from 'vuex-class'
 const databaseModule = namespace('database')
 const otherModule = namespace('other')
 
-@Component
+@Component({
+  components: {
+    sUpdater
+  }
+})
 export default class App extends Vue {
   @databaseModule.Action('saveApiLog') saveApiLog!: (param: any[]) => void;
   @databaseModule.Action('saveControlLog') saveControlLog!: (
@@ -74,6 +85,7 @@ export default class App extends Vue {
 
   @databaseModule.State('GroupDevice') GroupDevice!: GroupDevice[];
 
+  @databaseModule.State('Reals') Reals!: RealApiInterface[];
   @databaseModule.Action('saveReals') saveReals!: (param: any[]) => void;
   @databaseModule.Action('saveRelay') saveRelay!: (param: any[]) => void;
   @databaseModule.State('Relay') Relay!: Relay[];
@@ -89,6 +101,11 @@ export default class App extends Vue {
   @databaseModule.State('TurnRecord') private TurnRecord!: TurnRecord[];
   @databaseModule.State('TurnContent') private TurnContent!: TurnContent[];
   @databaseModule.State('TurnFer') private TurnFer!: TurnFer[];
+
+  @otherModule.State('DisplayReals') reals!: DisplayRealInterface[];
+  @otherModule.Action('saveDisplayReals') saveDisplayReals!: (
+    param: any[]
+  ) => void;
 
   @otherModule.State('DeviceList') DeviceList!: DeviceInterface[];
   @otherModule.Action('saveDeviceList') saveDeviceList!: (param: any[]) => void;
@@ -108,16 +125,18 @@ export default class App extends Vue {
     const name = names.split('/')
     const sensor: ChannelInfoInterface[] = []
     for (let i = 0; i < maxNumber; i++) {
-      if (ele[i] !== '100') {
-        const temp: ChannelInfoInterface = {
-          name: name[i],
-          // eslint-disable-line
-          ele: this.Element.find((item: Element) => item.indexs === ele[i]),
-          status: 0
-        }
-        sensor.push(temp)
+      // if (!!ele[i] && ele[i] !== "100") {
+      const temp: ChannelInfoInterface = {
+        index: i,
+        name: name[i],
+        // eslint-disable-line
+        ele: this.Element.find((item: Element) => item.indexs === ele[i]),
+        status: 0
       }
+      sensor.push(temp)
+      // }
     }
+    // console.log(sensor);
     return sensor
   }
 
@@ -131,24 +150,123 @@ export default class App extends Vue {
       const ele = num.split('/')
       const name = names.split('/')
       for (let i = 0; i < maxNumber; i++) {
-        if (ele[i] !== '0') {
-          const temp: RelayInfoInterface = {
-            index: i,
-            name: name[i],
-            relay: this.Relay.find(
-              (item: Relay) => item.indexs === Number(ele[i])
-            ),
-            status: 0
-          }
-          relay.push(temp)
+        // if (!!ele[i] && ele[i] !== "0") {
+        const temp: RelayInfoInterface = {
+          index: i,
+          name: name[i],
+          relay: this.Relay.find(
+            (item: Relay) => item.indexs === Number(ele[i])
+          ),
+          status: 0
         }
+        relay.push(temp)
+        // }
       }
     }
+    // console.log(num, names, relay);
     return relay
+  }
+
+  private getCurrentDeviceReal (dev: DeviceInterface): DisplayRealInterface {
+    const real: RealApiInterface | undefined = this.Reals.find(
+      (real: RealApiInterface) => real.id === dev.fac_id
+    )
+    const sensors: RealValueInterface[] = []
+    dev.sensor.forEach((sensor: ChannelInfoInterface) => {
+      if (sensor.ele.indexs !== '100') {
+        let value = '------'
+        if (real) {
+          const data = sensor.ele.prec.toString().split('.')
+          const point = data[1] ? data[1].length : 0
+          value =
+            real.sensor[sensor.index] === 32767 ||
+            real.sensor[sensor.index] === 0x7fffffff
+              ? '------'
+              : (real.sensor[sensor.index] * sensor.ele.prec).toFixed(point)
+        }
+        sensors.push({
+          index: sensor.index,
+          name: sensor.name === '-' ? sensor.ele.name : sensor.name,
+          value: value,
+          unit: sensor.ele.unit
+        })
+      }
+    })
+    const relays: RealValueInterface[] = []
+    dev.relay.map((relay: RelayInfoInterface) => {
+      if (relay.relay.indexs !== 0) {
+        relays.push({
+          index: relay.index,
+          name: relay.name === '-' ? relay.relay.name : relay.name,
+          value: real ? real.relay[relay.index] : 0
+        })
+      }
+    })
+    return {
+      id: dev.fac_id,
+      name: dev.fac_name,
+      sensor: sensors,
+      relay: relays
+    }
+  }
+
+  private get getDisplayReals () {
+    if (!this.DeviceList.length || !this.Reals.length) return [] // 如果Devicelist 或者Reals 长度不够则 返回空数组
+    let reals: DisplayRealInterface[] = []
+    const expDevice = this.DeviceList.filter(
+      (value: DeviceInterface) => value.fac_id >= 10000000000
+    ) // 查询扩展设备
+    const baseDevice = this.DeviceList.filter(
+      (value: DeviceInterface) => value.fac_id < 10000000000
+    ) // 查询基础设备
+    const devices: DeviceInterface[] = [] // 处理过后的 devicelist
+    if (expDevice.length > 0) {
+      expDevice.sort(
+        (a: DeviceInterface, b: DeviceInterface) => a.fac_id - b.fac_id
+      ) // 设备编号升序排列
+      baseDevice.forEach((value: DeviceInterface) => {
+        const theExpDevice = expDevice.filter((exp: DeviceInterface) => {
+          const id = Math.floor(exp.fac_id / 1000)
+          return id === value.fac_id
+        })
+        const baseDeviceReal = this.getCurrentDeviceReal(value)
+        if (theExpDevice.length > 0) {
+          const theExpReals = theExpDevice.map(this.getCurrentDeviceReal)
+          theExpReals.forEach((value: DisplayRealInterface) => {
+            value = JSON.parse(JSON.stringify(value))
+            value.sensor.forEach((sensor: RealValueInterface) => {
+              sensor.index += (value.id % 1000) * 16
+              baseDeviceReal.sensor.push(sensor)
+            })
+            value.relay.forEach((relay: RealValueInterface) => {
+              relay.index += (value.id % 1000) * 16
+              baseDeviceReal.relay.push(relay)
+            })
+          })
+        }
+        reals.push(baseDeviceReal)
+      })
+    } else {
+      reals = baseDevice.map(this.getCurrentDeviceReal)
+    }
+    // console.log(reals);
+    return reals
+  }
+
+  @Watch('getDisplayReals')
+  private saveDisplayReal (value: DisplayRealInterface[]) {
+    this.saveDisplayReals(value)
+    TurnLogic.evalDeviceRealData(value)
   }
 
   // 存储设备列表
   private get getDeviceList () {
+    if (
+      !this.Device.length ||
+      !this.FacType.length ||
+      !this.Element.length ||
+      !this.Relay.length
+    ) { return [] } // Device FacType Element Relay 未加载 返回空数组
     return this.Device.map((item: FacDevice) => {
       return {
         id: item.id,
@@ -243,12 +361,20 @@ export default class App extends Vue {
   private getScheduledTime (param: TurnRecordInterface) {
     let time = param.startTime
     param.group.forEach((item: any) => {
+      // time += (item.runTime + item.delay) * 1000; //调试模式
       time += (item.runTime + item.delay) * 60 * 1000
     })
     return time
   }
 
   private get getParams () {
+    if (
+      !this.TurnRecord.length ||
+      !this.TurnFer.length ||
+      !this.Group.length ||
+      !this.TurnContent.length ||
+      !this.ferType.length
+    ) { return [] } // TurnRecord TurnFer Group TurnContent ferType 未加载完成 返回空数组
     const params = this.TurnRecord.map((recode: TurnRecord) => {
       const content = this.TurnContent.filter(
         (content: TurnContent) => recode.id === content.turn_record_id
@@ -321,17 +447,25 @@ export default class App extends Vue {
     TurnLogic.evalRecordList(list)
   }
 
-  private mounted () {
-    TurnLogic.irrigationRun()
+  private getReals () {
     Bus.getReals().then((res: ResponedInterface) => {
       if (res.state === 0) {
+        console.log(res.data)
         this.saveReals(res.data)
       } else {
         Message.warning(res.type + '-' + res.msg)
       }
     })
+  }
+
+  private mounted () {
+    // Bus.checkUpdate().then(console.log).catch(console.log)
+    TurnLogic.irrigationRun()
+    this.getReals()
+    setInterval(this.getReals, 10 * 1000)
     Bus.getDevice().then((res: ResponedInterface) => {
       if (res.state === 0) {
+        // console.log(res);
         this.saveDevice(res.data)
       } else {
         Message.warning(res.type + '-' + res.msg)

@@ -50,14 +50,21 @@ export default class TcpServer {
   }
 
   private onReceiveHandle (sock: net.Socket, data: Buffer) {
-    log.debug('DATA ' + sock.remoteAddress + ': ' + data.toString())
+    log.debug(
+      '接收的内容(' +
+        sock.remoteAddress +
+        ':' +
+        sock.remotePort +
+        ')->' +
+        data.join(',')
+    )
 
     const event = this.event.get('data')
     !!event && event(sock, data)
   }
 
   private onCloseHandle (sock: net.Socket, hadError: boolean) {
-    log.debug(
+    log.error(
       'CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort + hadError
     )
 
@@ -66,7 +73,7 @@ export default class TcpServer {
   }
 
   private onErrorHandle (sock: net.Socket, error: Error) {
-    log.debug(
+    log.error(
       'CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort + error.message
     )
 
@@ -75,6 +82,14 @@ export default class TcpServer {
   }
 
   public send (sock: net.Socket, data: number[]) {
+    log.debug(
+      '发送的内容(' +
+        sock.remoteAddress +
+        ':' +
+        sock.remotePort +
+        ')->' +
+        data.join(' ')
+    )
     const result = sock.write(Buffer.of(...data))
     if (!result) {
       log.warn('数据暂时无法写入缓存' + data.join(' ') + sock)

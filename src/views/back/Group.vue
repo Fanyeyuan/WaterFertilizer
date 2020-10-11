@@ -482,6 +482,7 @@ export default class Group extends Vue {
   @Watch('GroupList', { immediate: true, deep: true })
   private getGroups (value: GroupInterface) {
     this.groups = JSON.parse(JSON.stringify(this.GroupList))
+    console.log(this.groups)
   }
 }
 </script>
@@ -564,12 +565,16 @@ export default class Group extends Vue {
 }
 </style>
 
-<style>
-.el-card__header {
-  padding: 0.09rem !important;
-}
-.el-scrollbar__wrap {
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+<style lang="scss">
+.group {
+  .row {
+    .el-card__header {
+      padding: 0.09rem !important;
+    }
+    .el-scrollbar__wrap {
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+    }
+  }
 }
 </style>

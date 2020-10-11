@@ -14,6 +14,13 @@ const enum XPHSUPPORTCMD {
   setDeviceRadio = 'setDeviceRadio' // 设置施肥比例
 }
 
+function hex2float (num: number) {
+  const sign = (num & 0x80000000) ? -1 : 1
+  const exponent = ((num >> 23) & 0xff) - 127
+  const mantissa = 1 + ((num & 0x7fffff) / 0x7fffff)
+  return sign * mantissa * Math.pow(2, exponent)
+}
+
 export default class Xph {
   public decode (data: Buffer | Array<number>): ProtocolResponedInterface {
     const result: ProtocolResponedInterface = {
@@ -28,43 +35,99 @@ export default class Xph {
       switch (data[1]) {
         case 0x03: {
           const cmd = (data[2] << 8) + data[3]
-          switch (cmd) {
+          if (cmd === 0x40 && data.length === 70) {
             // ProtocolResponedInterface.data:{sensor:number[], relay:number[]}
-            case 0x40: {
-              // 获取实时数据
-              result.type = XPHSUPPORTCMD.getDeviceReals
-              result.data = {
-                sensor: [],
-                relay: []
-              }
-
-              // 16通道要素
-              for (let i = 0; i < 16; i++) {
-                const tmp = (data[4 + i * 2] << 8) + data[5 + i * 2]
-                result.data.sensor.push(tmp)
-              }
-              // 32字节继电器
-              for (let i = 0; i < 32; i++) {
-                result.data.relay.push(data[36 + i])
-              }
-
-              result.msg =
-                '设备实时数据为:' +
-                result.data.sensor.join(' ') +
-                ',继电器状态为：' +
-                result.data.relay.join(' ')
-              break
+            // 获取实时数据
+            result.type = XPHSUPPORTCMD.getDeviceReals
+            result.data = {
+              sensor: [],
+              relay: []
             }
+
+            // 16通道要素
+            for (let i = 0; i < 16; i++) {
+              const tmp = (data[4 + i * 2] << 8) + data[5 + i * 2]
+              result.data.sensor.push(tmp)
+            }
+            // 32字节继电器
+            for (let i = 0; i < 32; i++) {
+              result.data.relay.push(data[36 + i])
+            }
+
+            result.msg =
+              '设备实时数据为:' +
+              result.data.sensor.join(' ') +
+              ',继电器状态为：' +
+              result.data.relay.join(' ')
+          } else if (cmd === 0x60 && data.length === 12) {
             // ProtocolResponedInterface.data:number
-            case 0x60: {
-              // 获取设备ID
-              result.type = XPHSUPPORTCMD.getDeviceId
-              result.data =
-                ((data[6] * 100 + data[7]) * 100 + data[8]) * 100 + data[9]
-              result.msg = '设备ID 为' + result.data
-              break
+            // 获取设备ID
+            result.type = XPHSUPPORTCMD.getDeviceId
+            result.data =
+              ((data[6] * 100 + data[7]) * 100 + data[8]) * 100 + data[9]
+            result.msg = '设备ID 为' + result.data
+          } else {
+            // ProtocolResponedInterface.data:{sensor:number[], relay:number[]}
+            // 获取特殊设备(通道数超过32通道) 实时数据
+            result.type = XPHSUPPORTCMD.getDeviceReals
+            result.data = {
+              sensor: [],
+              relay: []
             }
+
+            // 16通道要素
+            for (let i = 0; i < cmd / 4; i++) {
+              const tmp = (data[4 + i * 4] << 24) + (data[5 + i * 4] << 16) + (data[6 + i * 4] << 8) + data[7 + i * 4]
+              result.data.sensor.push(tmp)
+            }
+            // 32字节继电器
+            for (let i = 0; i < 32; i++) {
+              result.data.relay.push(data[cmd + 4 + i])
+            }
+
+            result.msg =
+              '设备实时数据为:' +
+              result.data.sensor.join(' ') +
+              ',继电器状态为：' +
+              result.data.relay.join(' ')
           }
+          // switch (cmd) {
+          //   // ProtocolResponedInterface.data:{sensor:number[], relay:number[]}
+          //   case 0x40: {
+          //     // 获取实时数据
+          //     result.type = XPHSUPPORTCMD.getDeviceReals
+          //     result.data = {
+          //       sensor: [],
+          //       relay: []
+          //     }
+
+          //     // 16通道要素
+          //     for (let i = 0; i < 16; i++) {
+          //       const tmp = (data[4 + i * 2] << 8) + data[5 + i * 2]
+          //       result.data.sensor.push(tmp)
+          //     }
+          //     // 32字节继电器
+          //     for (let i = 0; i < 32; i++) {
+          //       result.data.relay.push(data[36 + i])
+          //     }
+
+          //     result.msg =
+          //       '设备实时数据为:' +
+          //       result.data.sensor.join(' ') +
+          //       ',继电器状态为：' +
+          //       result.data.relay.join(' ')
+          //     break
+          //   }
+          //   // ProtocolResponedInterface.data:number
+          //   case 0x60: {
+          //     // 获取设备ID
+          //     result.type = XPHSUPPORTCMD.getDeviceId
+          //     result.data =
+          //       ((data[6] * 100 + data[7]) * 100 + data[8]) * 100 + data[9]
+          //     result.msg = '设备ID 为' + result.data
+          //     break
+          //   }
+          // }
           break
         }
         // ProtocolResponedInterface.data:{relay:number; state:number}

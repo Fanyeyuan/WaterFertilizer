@@ -58,27 +58,33 @@ import { MessageBox, Message } from 'element-ui'
 import { namespace } from 'vuex-class'
 
 import DeviceInfo from './DeviceInfo.vue'
-import ChannelInfo, { ChannelInfoInterface } from './ChannelInfo.vue'
-import RelayInfo, { RelayInfoInterface } from './RelayInfo.vue'
+import ChannelInfo from './ChannelInfo.vue'
+import RelayInfo from './RelayInfo.vue'
+
+import {
+  RelayInfoInterface,
+  ChannelInfoInterface,
+  DeviceInterface
+} from '@/utils/types/type'
 const databaseModule = namespace('database')
 
-export interface DeviceInterface {
-  id?: number;
-  creator_id: number;
-  fac_id: number; // eslint-disable-line
-  create_time: number; // eslint-disable-line
-  remark: string; // eslint-disable-line
-  fac_name: string; // eslint-disable-line
-  fac_type: FacType; // eslint-disable-line
-  sensor: ChannelInfoInterface[];
-  relay: RelayInfoInterface[];
-  relay_extend: boolean; // eslint-disable-line
-  relay_extend_count: 16; // eslint-disable-line
-  exRelay: RelayInfoInterface[];
-  longitude: number;
-  latitude: number;
-  read_interval: number; // eslint-disable-line
-}
+// export interface DeviceInterface {
+//   id?: number;
+//   creator_id: number;
+//   fac_id: number; // eslint-disable-line
+//   create_time: number; // eslint-disable-line
+//   remark: string; // eslint-disable-line
+//   fac_name: string; // eslint-disable-line
+//   fac_type: FacType; // eslint-disable-line
+//   sensor: ChannelInfoInterface[];
+//   relay: RelayInfoInterface[];
+//   relay_extend: boolean; // eslint-disable-line
+//   relay_extend_count: 16; // eslint-disable-line
+//   exRelay: RelayInfoInterface[];
+//   longitude: number;
+//   latitude: number;
+//   read_interval: number; // eslint-disable-line
+// }
 
 @Component({
   components: {
@@ -148,7 +154,7 @@ export default class NewDevice extends Vue {
 
   @Watch('device', { immediate: true, deep: true })
   private deviceChange (value: DeviceInterface) {
-    console.log(value)
+    // console.log(value)
     this.info = JSON.parse(JSON.stringify(value))
   }
 }

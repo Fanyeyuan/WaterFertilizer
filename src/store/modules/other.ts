@@ -2,7 +2,8 @@ import { Commit } from 'vuex'
 const state: any = {
   DeviceList: [],
   GroupList: [],
-  TurnInfo: []
+  TurnInfo: [],
+  DisplayReals: []
 }
 
 const mutations: any = {
@@ -14,6 +15,9 @@ const mutations: any = {
   },
   saveTurnInfo (states: any, params: object) {
     states.TurnInfo = params
+  },
+  saveDisplayReals (states: any, params: object) {
+    states.DisplayReals = params
   }
 }
 
@@ -26,6 +30,9 @@ const actions: any = {
   },
   saveTurnInfo (context: { commit: Commit }, params: object) {
     context.commit('saveTurnInfo', params)
+  },
+  saveDisplayReals (context: { commit: Commit }, params: object) {
+    context.commit('saveDisplayReals', params)
   }
 }
 

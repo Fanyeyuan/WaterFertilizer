@@ -3,6 +3,11 @@ import crypto from 'crypto'
 import { ResponedInterface, TurnStateInterface } from './types/type'
 
 enum BusEvents {
+  getCurrentInfo = 'getCurrentInfo', // 获取当前版本信息
+  checkUpdate = 'checkUpdate', // 检查是否有更新
+  confimUpdate = 'confimUpdate', // 确认开始更新
+  confimInstall = 'confimInstall', // 确认开始安装
+
   getReals = 'getReals', // 从库中获取多个实时数据
   getReal = 'getReal', // 发送指令给设备，获取实时数据
   setRelays = 'setRelays', // 设置同一设备下的多个继电器
@@ -55,11 +60,47 @@ export function sha256 (data: any, key = '123456') {
   return hash
 }
 
-export function emitterTurnIrrigationState (state: TurnStateInterface) {
+export function emitterDeviceRealData (
+  state: TurnStateInterface | TurnStateInterface[]
+) {
+  bus.$emit('deviceRealData', state)
+}
+export function onDeviceRealData (call: Function) {
+  bus.$on('deviceRealData', call)
+}
+
+export function emitterTurnIrrigationState (
+  state: TurnStateInterface | TurnStateInterface[]
+) {
   bus.$emit('turnIrrigationState', state)
 }
 export function onTurnIrrigationState (call: Function) {
   bus.$on('turnIrrigationState', call)
+}
+
+export function emitterCheckUpdate (state: boolean) {
+  bus.$emit('CheckUpdate', state)
+}
+export function onCheckUpdate (call: Function) {
+  bus.$on('CheckUpdate', call)
+}
+
+export function upgradeDownloadProgress (call: Function) {
+  window.ipc.on('upgrade-download-progress', (event: any, back: any) => {
+    call(back)
+  })
+}
+
+export function upgradeError (call: Function) {
+  window.ipc.on('upgrade-error', (event: any, back: any) => {
+    call(back)
+  })
+}
+
+export function upgradeDownloaded (call: Function) {
+  window.ipc.on('upgrade-downloaded', (event: any, back: any) => {
+    call(back)
+  })
 }
 
 export function event (eve: string, args: any): Promise<ResponedInterface> {
@@ -82,6 +123,19 @@ export function event (eve: string, args: any): Promise<ResponedInterface> {
       resolve(args)
     })
   })
+}
+
+export function getCurrentInfo () {
+  return event(BusEvents.getCurrentInfo, { cmd: BusEvents.getCurrentInfo })
+}
+export function checkUpdate () {
+  return event(BusEvents.checkUpdate, { cmd: BusEvents.checkUpdate })
+}
+export function confimUpdate () {
+  return event(BusEvents.confimUpdate, { cmd: BusEvents.confimUpdate })
+}
+export function confimInstall () {
+  return event(BusEvents.confimInstall, { cmd: BusEvents.confimInstall })
 }
 
 export function getReals (id?: number[] | number) {

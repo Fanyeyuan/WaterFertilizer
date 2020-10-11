@@ -34,6 +34,7 @@
           v-if="scope.row.status"
           v-model="scope.row.name"
           placeholder="请输入设备名称"
+          @change="onRowChange"
         ></el-input>
         <span v-else>{{ scope.row.name }}</span>
       </template>
@@ -58,6 +59,7 @@
           placeholder="请选择类型"
           v-if="scope.row.status"
           value-key="id"
+          @change="onRowChange"
         >
           <el-option
             :label="item.name"
@@ -77,14 +79,9 @@ import { Component, Vue, Prop, Watch, Emit } from 'vue-property-decorator'
 import { Relay } from '@/app/main/database/model'
 
 import { namespace } from 'vuex-class'
-const databaseModule = namespace('database')
 
-export interface RelayInfoInterface {
-  index: number;
-  name: string;
-  relay: Relay;
-  status?: number;
-}
+import { RelayInfoInterface } from '@/utils/types/type'
+const databaseModule = namespace('database')
 
 @Component
 export default class RelayInfo extends Vue {
@@ -95,7 +92,7 @@ export default class RelayInfo extends Vue {
 
   @Prop({ type: Number, default: 32 }) private relayNumber!: number;
   @Prop({ type: Number, default: 1 }) private relayStartNumber!: number;
-  private relay!: RelayInfoInterface[];
+  private relay: RelayInfoInterface[] = [];
   private defaultRelayInfo: RelayInfoInterface = {
     index: 0,
     name: '-',
@@ -112,20 +109,31 @@ export default class RelayInfo extends Vue {
     return this.relay
   }
 
+  private onRowChange () {
+    this.onInfoChange()
+  }
+
   private onColumnClick (row: RelayInfoInterface) {
+    this.relay.forEach((value: RelayInfoInterface) => {
+      if (value !== row) value.status = 0
+    })
     row.status = 1 - (row.status || 0)
-    row.status || this.onInfoChange()
+    // row.status || this.onInfoChange();
   }
 
   @Watch('value', { immediate: true, deep: true })
   private infoChange (value: RelayInfoInterface[]) {
+    let flag = false
     this.relay = JSON.parse(JSON.stringify(value))
     console.log(this.relay)
     for (let i = this.relay.length; i < this.relayNumber; i++) {
       const data = JSON.parse(JSON.stringify(this.defaultRelayInfo))
       data.index = i
       this.relay.push(data)
+      flag = true
     }
+    // console.log(this.relay);
+    flag && this.onInfoChange()
   }
 
   private mounted () {

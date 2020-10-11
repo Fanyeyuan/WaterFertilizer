@@ -111,6 +111,7 @@ export interface DeviceInterface {
   read_interval: number; // eslint-disable-line
 }
 export interface ChannelInfoInterface {
+  index: number;
   name: string;
   ele: Element;
   status?: number;
@@ -138,4 +139,30 @@ export interface GroupInterface {
   crop: Crop; // 对应作物
   machine: DeviceInterface; // 对应水肥机
   device: GroupDeviceInterface[]; // 灌区下设备
+}
+
+export interface DeviceStationInfoInterface {
+  solidFacId: number;
+  weatherFacId: number;
+  username: string;
+  password: string;
+}
+
+export interface RealApiInterface {
+  id: number;
+  sensor: number[];
+  relay: number[];
+}
+
+export declare interface RealValueInterface {
+  index: number;
+  name: string;
+  value: number | string;
+  unit?: string;
+}
+export interface DisplayRealInterface {
+  id: number;
+  name: string;
+  sensor: RealValueInterface[];
+  relay: RealValueInterface[];
 }

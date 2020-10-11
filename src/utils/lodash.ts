@@ -1,10 +1,10 @@
 const lodash = window.lodash
 
 enum LodashKeys {
-  SolidFacId = 'solid-fac-id', // 土壤墒情信息
-  WeatherStationFacId = 'weather-station-fac-id', // 气象站信息
-  MachineFacId = 'machine-fac-id', // 气象站信息
-  WeatherInfo = 'weather-fac-id', // 天气信息
+  DeviceStationInfo = 'device-station-info', // 设备站信息 包括气象站和墒情
+  MachineInfo = 'machine-info', // 水肥机信息
+  WeatherInfo = 'weather-info', // 天气信息
+  WeatherIcon = 'weather-icon', // 天气图标
   MapInfo = 'map-info' // 地图信息
 }
 

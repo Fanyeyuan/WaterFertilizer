@@ -5,6 +5,7 @@
         v-model="info.fac_id"
         size="small"
         :controls="false"
+        :min="15000000"
         autocomplete="off"
         placeholder="请输入设备ID"
       ></el-input-number>
@@ -149,7 +150,7 @@ export default class DeviceInfo extends Vue {
   };
 
   private mounted () {
-    console.log(this.deviceTypes)
+    // console.log(this.deviceTypes);
     !this.info.relay_extend_count && (this.info.relay_extend_count = 1); // eslint-disable-line
     !this.info.read_interval && (this.info.read_interval = 1); // eslint-disable-line
     !this.info.fac_type && // eslint-disable-line

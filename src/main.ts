@@ -21,7 +21,7 @@ Vue.config.productionTip = false
 //   console.log(event, args);
 // });
 
-console.log(__static)
+// window.log.info(__static);
 new Vue({
   store,
   router,

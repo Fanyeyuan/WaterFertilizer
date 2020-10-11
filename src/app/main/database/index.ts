@@ -49,8 +49,8 @@ enum tables {
 
   sqliteSequence = 'sqlite_sequence'
 }
-log.info(__static)
-const dbPath = path.join(__static, '/db.db')
+const dbPath = path.join(__dirname, '../static/db.db')
+log.info(__dirname, __static)
 const db = new sqlite3.Database(dbPath)
 // this.db = new sqlite3.Database('db.db');       //临时目录  调试下可用，build后用不了
 // this.db = new sqlite3.Database(':memory:');    //保存在内存中

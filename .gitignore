@@ -23,6 +23,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+jsconfig.json
 
 #Electron-builder output
 /dist_electron
